@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="candidate_background">#ff353535</color>
+    <color name="candidate_normal">#ff565656</color>
+    <color name="candidate_recommended">#ff2fbfbd</color>
+    <color name="candidate_other">#ffdcdcdc</color>
+    <color name="white">#FFFFFF</color>
+
+
+</resources>

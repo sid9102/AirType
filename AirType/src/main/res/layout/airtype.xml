@@ -1,0 +1,112 @@
+<co.sidhant.airtype.AirTypeView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <LinearLayout
+        android:id="@+id/left_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginRight="3dp"
+        android:layout_marginLeft="5dp"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/one"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:textColor="@color/white"
+            android:layout_marginBottom="5dp"
+            android:text="@string/one"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/two"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/two"
+            android:textColor="@color/white"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/c_left_panel"
+        android:layout_width="wrap_content"
+        android:layout_toRightOf="@id/left_panel"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="3dp"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/three"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/three"
+            android:textColor="@color/white"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/four"
+            android:layout_width="85dp"
+            android:text="@string/four"
+            android:layout_height="85dp"
+            android:textColor="@color/white"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/c_right_panel"
+        android:layout_width="wrap_content"
+        android:layout_toRightOf="@id/c_left_panel"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="3dp"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/five"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/five"
+            android:textColor="@color/white"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/six"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/six"
+            android:textColor="@color/white"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/right_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/c_right_panel"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/seven"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/seven"
+            android:textColor="@color/white"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/eight"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:text="@string/eight"
+            android:textColor="@color/white"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+
+</co.sidhant.airtype.AirTypeView>
