@@ -4,7 +4,12 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="E:\Documents\GitHub\AirKeys" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="useAutoImport" value="true" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="E:\Documents\GitHub" />
       </GradleProjectSettings>
     </option>
   </component>
