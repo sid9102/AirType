@@ -32,7 +32,7 @@ public class TrieMaker
                     curNode.setChild(new AirTrieNode(), childIndex);
                     curNode = curNode.getChildPrecise(childIndex);
                     curNode.setLetter(curWord.charAt(i));
-                    curNode.setWord(curWord.substring(0, i));
+                    curNode.setWord(curWord.substring(0, i + 1));
                 }
                 else
                 {

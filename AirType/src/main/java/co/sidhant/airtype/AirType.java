@@ -198,8 +198,15 @@ public class AirType extends InputMethodService
 
     public void pickSuggestion(int index) {
         // TODO: fix this
-
-        String selection = candidatesList.get(index);
+        String selection;
+        if(index != 0)
+        {
+            selection = candidatesList.get(index);
+        }
+        else
+        {
+            selection = mComposing.toString();
+        }
         InputConnection ic = getCurrentInputConnection();
         if(ic!= null)
             ic.commitText(selection + " ", selection.length() + 1);
@@ -313,12 +320,33 @@ public class AirType extends InputMethodService
 
     public void handleFinger(int keyCode)
     {
+        //Punctuation!
+        if(curNode.isEndOfWord())
+        {
+            if (curNode.getChildPrecise(keyCode - 8) == null)
+            {
+                //user wants a comma!
+                if(keyCode - 8 == 6)
+                {
+                    mComposing = new StringBuilder(curNode.getWord() + ",");
+                    pickSuggestion(0);
+                    return;
+                } // user wants a period
+                else if(keyCode - 8 == 7)
+                {
+                    mComposing = new StringBuilder(curNode.getWord() + ".");
+                    pickSuggestion(0);
+                    return;
+                }
+
+            }
+        }
         curNode = curNode.getChild(keyCode - 8);
         if(curNode != null)
         {
             mComposing = new StringBuilder(curNode.getWord());
             updateCandidates();
-            InputConnection ic =getCurrentInputConnection();
+            InputConnection ic = getCurrentInputConnection();
             if(ic != null)
                 ic.setComposingText(mComposing, 1);
         }
