@@ -40,7 +40,7 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    private class TrieGenTask extends AsyncTask<Void, Integer, Void>
+    public class TrieGenTask extends AsyncTask<Void, Integer, Void>
     {
         //Before running code in separate thread
         @Override
@@ -108,6 +108,14 @@ public class SettingsActivity extends Activity {
                 progress  = (int) (((float)curLineNum / (float)lineCount) * 25.0f);
                 onProgressUpdate(progress);
             }
+
+            TrieMaker.trieGenTask = this;
+
+            onProgressUpdate(25);
+
+            AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
+
+            onProgressUpdate(50);
 
             return null;
         }

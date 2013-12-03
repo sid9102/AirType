@@ -10,18 +10,23 @@ import java.util.TreeMap;
  */
 public class TrieMaker
 {
+    public static SettingsActivity.TrieGenTask trieGenTask; // for the TrieGenTask to keep track of progress
+
     public static AirTrie makeTrie(FingerMap fmap, TreeMap<String, ArrayList<String>> permutationMap)
     {
         AirTrie mTrie = new AirTrie();
-
+        float totalEntries = permutationMap.size();
+        float curEntry = 0;
         java.util.Iterator<Map.Entry<String, ArrayList<String>>> it = permutationMap.entrySet().iterator();
         ArrayList<String> curList;
         String curWord = "";
         AirTrieNode curNode = mTrie.root;
+        int progress = 0;
         while(it.hasNext())
         {
             curNode = mTrie.root;
             Map.Entry<String, ArrayList<String>> pairs = (Map.Entry<String, ArrayList<String>>) it.next();
+            curEntry++;
             curList = pairs.getValue();
             curWord = curList.get(0);
             for(int i = 0; i < curWord.length(); i++)
@@ -50,6 +55,8 @@ public class TrieMaker
                     curNode.setWord(curList.get(i));
                 }
             }
+            progress = (int)(curEntry / totalEntries * 25) + 25;
+            trieGenTask.onProgressUpdate(progress);
         }
         return mTrie;
     }
