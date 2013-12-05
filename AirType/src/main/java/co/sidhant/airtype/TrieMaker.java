@@ -21,7 +21,7 @@ public class TrieMaker
         ArrayList<String> curList;
         String curWord = "";
         AirTrieNode curNode = mTrie.root;
-        int progress = 0;
+        int completion = 0;
         while(it.hasNext())
         {
             curNode = mTrie.root;
@@ -55,8 +55,12 @@ public class TrieMaker
                     curNode.setWord(curList.get(i));
                 }
             }
-            progress = (int)(curEntry / totalEntries * 25) + 25;
-            trieGenTask.onProgressUpdate(progress);
+            int curCompletion = (int)(curEntry / totalEntries * 25) + 25;
+            if(curCompletion > completion)
+            {
+                completion = curCompletion;
+                trieGenTask.onProgressUpdate(completion);
+            }
         }
         return mTrie;
     }

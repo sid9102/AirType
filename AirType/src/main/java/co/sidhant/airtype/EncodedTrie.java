@@ -2,6 +2,7 @@ package co.sidhant.airtype;
 
 import android.util.Base64;
 
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,17 +26,31 @@ public class EncodedTrie
     // for O(1) rank lookup on the trie string
     private String rankDir;
 
-    public int completion;
+    // A bitset of the encoded words
+    private BitSet wordBits;
 
-    public EncodedTrie(AirTrie trie)
+    // The current index at which to encode, in the bitset
+    private int wordBitIndex;
+
+    private int completion;
+
+    public static SettingsActivity.TrieGenTask trieGenTask;
+
+    public void makeEncodedTrie(AirTrie trie)
     {
         LinkedList<AirTrieNode> nodeQueue = new LinkedList<AirTrieNode>();
         AirTrieNode curNode = trie.root;
         nodeQueue.add(curNode);
         AirTrieNode curChild;
+        //TODO: fix hardcoded number
+        float totalNodes = 1499062;
+        float currentNode = 0;
+        wordBitIndex = 0;
+        completion = 50;
         //Breadth first search of the trie, list every string
         while(!nodeQueue.isEmpty())
         {
+            currentNode++;
             curNode = nodeQueue.removeFirst();
             for(int i = 0; i < 9; i++)
             {
@@ -45,52 +60,48 @@ public class EncodedTrie
                     nodeQueue.add(curChild);
                 }
             }
-
+            int curCompletion = (int) ((currentNode / totalNodes) * 25) + 50;
+            if(curCompletion > completion)
+            {
+                completion = curCompletion;
+                trieGenTask.onProgressUpdate(completion);
+            }
+            encodeNode(curNode);
         }
-        completion = 25;
+        completion = 75;
         //TODO: encode string
     }
 
     // Convert a node's word into a binary representation,
     // 0x01 through 0x1a represent a through z, delimited through the use of 0x1b to indicate the
     // beginning of a word fragment and 0x1c to indicate the beginning of a full word
-    private String nodeConverter(AirTrieNode node)
+    private void encodeNode(AirTrieNode node)
     {
-        String curWord = node.getWord();
-        String wordHex;
-
-        // Set up word delimiting, also use this bit to determine if this is a word fragment or a full word
         if(node.isEndOfWord())
         {
-            wordHex = "1c";
+            //encode the word header, complete word, so 11100
+            wordBits.set(wordBitIndex, wordBitIndex + 2, true);
         }
         else
         {
-            wordHex = "1b";
+            //encode the word header, complete word, so 11011
+            wordBits.set(wordBitIndex, wordBitIndex + 1, true);
+            wordBits.set(wordBitIndex + 3, wordBitIndex + 4, true);
         }
-        // Generate the hex representation of these letters
+        wordBitIndex += 5;
+        String curWord = node.getWord();
+        // Encode the letters one by one, 5 bits each
         for(int i = 0; i < curWord.length(); i++)
         {
-            int curLetter = curWord.charAt(i) - 'a' + 1;
-            String hexCode = Integer.toHexString(curLetter);
-            if(hexCode.length() == 1)
+            int letter = curWord.charAt(i) - 'a' + 1;
+            String letterBinary = Integer.toBinaryString(letter);
+            for(int j = 0; j < 5; j++)
             {
-                hexCode = 0 + hexCode;
+                if(letterBinary.charAt(j) == '1')
+                    wordBits.set(wordBitIndex, true);
+                wordBitIndex++;
             }
-            wordHex += hexCode;
         }
-
-        int len = wordHex.length();
-        // convert this into bytes
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2)
-        {
-            data[i / 2] = (byte) ((Character.digit(wordHex.charAt(i), 16) << 4)
-                    + Character.digit(wordHex.charAt(i+1), 16));
-        }
-
-        String result = Base64.encodeToString(data, 0);
-        return result;
     }
 
     //TODO finish the encoding process, figure out how to decode on base64 so decoding from base64 to bytes is not needed
