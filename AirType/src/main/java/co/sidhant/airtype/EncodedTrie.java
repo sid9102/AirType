@@ -122,17 +122,127 @@ public class EncodedTrie
     private BitSet generateRankDirectory(BitSet bitSet)
     {
         BitSet rankDir = new BitSet();
+        int superBlockIndex = 0;
         long rank = 0;
 
         // We're allocating 64 bits for a superblock header,
-        // and then another 64, for 8 8-bit data blocks.
+        // and then another 64, for 7 9-bit data blocks. A superblock is therefore 128 bits in size.
         // This means that each data block is a jump of 256 bits in the input BitSet,
-        // and each superblock is (1 + 8) * 256 bits, or 2304 bits
-        for(long i = 0; i < bitSet.length(); i+= 256)
+        // and each superblock is (1 + 7) * 256 bits, or 2048 bits
+        int i = 0;
+        while(i < bitSet.length())
         {
-            
+            // Superblock header
+            long[] header = new long[1];
+            header[0] = rank;
+            // This bitset maintains the bits for the 7 data blocks
+            BitSet dataBits = new BitSet();
+            // This loop runs once per data block
+            for(int j = 0; j < 7; j++)
+            {
+                long oldValue = rank;
+                // This loop updates the rank 256 times, traversing the size of a data block
+                for(int k = 0; k < 256; k++)
+                {
+                    if(bitSet.get(i))
+                    {
+                        rank++;
+                    }
+                    i++;
+                }
+                // Encode each data block
+                int block = (int) (rank - oldValue);
+                int bit = 1;
+                for(int k = 0; k < 9; k++)
+                {
+                    if((bit & block) != 0)
+                    {
+                        dataBits.set(k + (j * 9));
+                    }
+                    bit <<= 1;
+                }
+            }
+
+            //TODO: remove debugging assert
+            if(dataBits.length() >= 64)
+            {
+                throw new AssertionError("oh snap that shit ain't right");
+            }
+
+            BitSet headerBits = valueOf(header);
+
+            // Insert this superblock into the rank directory
+            for(int j = 0; j < 128; j++)
+            {
+                if(j < 64)
+                {
+                    if(headerBits.get(j))
+                    {
+                        rankDir.set(j + (superBlockIndex * 128));
+                    }
+                }
+                else
+                {
+                    if(dataBits.get(j - 64))
+                    {
+                        rankDir.set(j + (superBlockIndex * 128));
+                    }
+                }
+            }
+
+            // Update rank for the next superblock header
+            for(int k = 0; k < 256; k++)
+            {
+                if(bitSet.get(i))
+                {
+                    rank++;
+                }
+                i++;
+            }
+            superBlockIndex++;
         }
 
         return rankDir;
+    }
+
+    // Returns a bitset from a provided long[]
+    private BitSet valueOf(long[] longs)
+    {
+        BitSet result = new BitSet();
+        for(int i = 0; i < longs.length; i++)
+        {
+            long bit = 1;
+            for(int j = 0; j < 64; j++)
+            {
+                // Check the bit at j
+                if((bit & longs[i]) != 0)
+                {
+                    result.set(j + (i * 64));
+                }
+                bit <<= 1;
+            }
+        }
+        return result;
+    }
+
+    // Produces a long[] for a given bitset
+    private long[] BitSetToLong(BitSet bitSet)
+    {
+        // figure out how many longs we need, size will always be some multiple of 64
+        int size = bitSet.size() / 64;
+        long[] result = new long[size];
+        for(int i = 0; i < size; i++)
+        {
+            long bit = 1;
+            for(int j = 0; j < 64; j++)
+            {
+                if(bitSet.get(j + i * 64))
+                {
+                    result[i] = result[i] | bit;
+                }
+                bit <<= 1;
+            }
+        }
+        return result;
     }
 }
