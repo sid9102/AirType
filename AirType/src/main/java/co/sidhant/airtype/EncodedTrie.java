@@ -5,6 +5,8 @@ import java.util.LinkedList;
 
 /**
  * Created by sid9102 on 11/22/13.
+ * Thanks to this paper on succinct encoding: http://people.eng.unimelb.edu.au/sgog/optimized.pdf
+ * and this blog post: http://stevehanov.ca/blog/index.php?id=120
  */
 public class EncodedTrie
 {
@@ -13,19 +15,25 @@ public class EncodedTrie
     // A bitset of all the words assigned to the nodes, indexed breadth first
     // These words are encoded with 0x01 through 0x1a assigned to a through z,
     // 0x1b and 0x1c refer to the beginning of a word fragment and the beginning of a complete word, respectively
+    private BitSet encodedWords;
+    // For more useful rank directory generation, this BitSet represents words with a 1 representing the beginning of a word,
+    // and a 0 for each letter in the word, so 1 bit for each letter + the header bit for delimiting words.
+    // As explained here: http://en.wikipedia.org/wiki/Succinct_data_structure#Examples
     private BitSet wordBits;
-    // A rank directory for the words string, for 0(1) lookup of the words
+    // A rank directory of wordBits.
     private BitSet wordRank;
+
     // A bitSet of children for each node,
     // 9 bits per node indicating whether a child exists or not, indexed breadth first
     private BitSet trieBits;
     // A base64 encoded rank directory (http://people.eng.unimelb.edu.au/sgog/optimized.pdf, page 4)
-    // for O(1) rank lookup on the trie string
+    // for O(c) rank lookup on the trie string
     private BitSet trieRank;
 
     // The current index at which to encode, in the bitsets
-    private int wordBitIndex;
+    private int encodedWordsIndex;
     private int trieBitIndex;
+    private int wordBitsIndex;
 
     private int completion;
 
@@ -42,10 +50,12 @@ public class EncodedTrie
         float totalNodes = 1500000;
         float currentNode = 0;
 
-        wordBitIndex = 0;
+        encodedWordsIndex = 0;
         trieBitIndex = 0;
-        wordBits = new BitSet();
+        wordBitsIndex = 0;
+        encodedWords = new BitSet();
         trieBits = new BitSet();
+        wordBits = new BitSet();
 
         completion = 50;
         //Breadth first search of the trie, list every string
@@ -68,15 +78,16 @@ public class EncodedTrie
                 trieGenTask.onProgressUpdate(completion);
             }
             encodeNodeWord(curNode);
+            encodeNodeWordBits(curNode);
             encodeNodeChildren(curNode);
         }
-        completion = 75;
-        trieGenTask.onProgressUpdate(completion);
+
+        trieGenTask.onProgressUpdate(75);
         // Generate the rank directory for the trie bitset
         trieRank = generateRankDirectory(trieBits);
-        completion = 85;
-        trieGenTask.onProgressUpdate(completion);
-
+        trieGenTask.onProgressUpdate(85);
+        wordRank = generateRankDirectory(wordBits);
+        trieGenTask.onProgressUpdate(95);
     }
 
     // Convert a node's word into a binary representation,
@@ -87,15 +98,15 @@ public class EncodedTrie
         if(node.isEndOfWord())
         {
             //encode the word header, complete word, so 11100
-            wordBits.set(wordBitIndex, wordBitIndex + 2);
+            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 2);
         }
         else
         {
             //encode the word header, complete word, so 11011
-            wordBits.set(wordBitIndex, wordBitIndex + 1);
-            wordBits.set(wordBitIndex + 3, wordBitIndex + 4);
+            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 1);
+            encodedWords.set(encodedWordsIndex + 3, encodedWordsIndex + 4);
         }
-        wordBitIndex += 5;
+        encodedWordsIndex += 5;
         String curWord = node.getWord();
         // Encode the letters one by one, 5 bits each
         for(int i = 0; i < curWord.length(); i++)
@@ -105,10 +116,20 @@ public class EncodedTrie
             for(int j = 0; j < 5; j++)
             {
                 if(letterBinary.charAt(j) == '1')
-                    wordBits.set(wordBitIndex);
-                wordBitIndex++;
+                    encodedWords.set(encodedWordsIndex);
+                encodedWordsIndex++;
             }
         }
+    }
+
+    // This encodes the words for fast searching with a 1 to delimit words, then a 0 for each letter
+    private void encodeNodeWordBits(AirTrieNode node)
+    {
+        // First encode a 1 to indicate the beginning of a word
+        wordBits.set(wordBitsIndex);
+        wordBitsIndex++;
+        // Then encode a 0 for each letter
+        wordBitsIndex += node.getWord().length();
     }
 
     //Encode a node's children, 1 if a child exists, 0 if not
@@ -275,7 +296,7 @@ public class EncodedTrie
         return result;
     }
 
-    // Returns the rank at a particular index
+    // Returns the rank at a particular index in the BitSet bitSet, using the rank directory rankDirectory
     private long rank(int index, BitSet bitSet, BitSet rankDirectory)
     {
         long result = 0;
@@ -292,12 +313,6 @@ public class EncodedTrie
         // Get the superblock, then get the rank of the header
         BitSet superBlock = rankDirectory.get(superBlockIndex, superBlockIndex + 128);
         result = bitSetToLong(superBlock)[0];
-
-        //TODO: remove debugging assert
-        if(superBlock.size() != 128)
-        {
-            throw new AssertionError("oh snap that shit ain't right, rank function edition");
-        }
 
         // Next calculate the rank until the data block.
         int[] dataBlocks = superBlockCounts(superBlock);
@@ -324,4 +339,37 @@ public class EncodedTrie
 
         return result;
     }
+
+    // Returns the i-th occurrence of a 1 in the BitSet, by binary searching the rank directory rankDirectory
+    private int select(int i, BitSet bitSet, BitSet rankDirectory)
+    {
+        // Start at the middle of the bitset
+        int upperLimit = bitSet.length();
+        int searchIndex = upperLimit / 2;
+        int rank = 0;
+        // Binary search!
+        while(rank != i)
+        {
+            rank = (int) rank(searchIndex, bitSet, rankDirectory);
+            if(rank < i)
+            {
+                searchIndex += (upperLimit - searchIndex)/ 2;
+            }
+            else if(rank > i)
+            {
+                upperLimit = searchIndex;
+                searchIndex /= 2;
+            }
+        }
+
+        // Now find the actual beginning of this word, search backwards until rank changes
+        while(rank == i)
+        {
+            searchIndex--;
+            rank = (int) rank(searchIndex, bitSet, rankDirectory);
+        }
+        searchIndex++;
+        return searchIndex;
+    }
+
 }
