@@ -1,5 +1,12 @@
 package co.sidhant.airtype;
 
+import android.content.Context;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.BitSet;
 import java.util.LinkedList;
 
@@ -37,7 +44,36 @@ public class EncodedTrie
 
     private int completion;
 
-    public static SettingsActivity.TrieGenTask trieGenTask;
+    private static SettingsActivity.TrieGenTask trieGenTask;
+
+    // This constructor means we want to load some pre-generated bitsets into memory
+    public EncodedTrie(Context context) throws IOException, ClassNotFoundException {
+
+        ObjectInputStream wordBitsStream = new ObjectInputStream(context.openFileInput("wordBits.ser"));
+        ObjectInputStream encodedWordsStream = new ObjectInputStream(context.openFileInput("encodedWords.ser"));
+        ObjectInputStream trieBitsStream = new ObjectInputStream(context.openFileInput("trieBits.ser"));
+        ObjectInputStream wordRankStream = new ObjectInputStream(context.openFileInput("wordRank.ser"));
+        ObjectInputStream trieRankStream = new ObjectInputStream(context.openFileInput("trieRank.ser"));
+
+        wordBits = (BitSet) wordBitsStream.readObject();
+        encodedWords = (BitSet) encodedWordsStream.readObject();
+        trieBits = (BitSet) trieBitsStream.readObject();
+        wordRank = (BitSet) wordRankStream.readObject();
+        trieRank = (BitSet) trieRankStream.readObject();
+
+        wordBitsStream.close();
+        encodedWordsStream.close();
+        trieBitsStream.close();
+        wordRankStream.close();
+        trieRankStream.close();
+    }
+
+    // This constructor is for generating a new encoded trie
+    public EncodedTrie(AirTrie trie, SettingsActivity.TrieGenTask trieGenTask)
+    {
+        this.trieGenTask = trieGenTask;
+        this.makeEncodedTrie(trie);
+    }
 
     public void makeEncodedTrie(AirTrie trie)
     {
@@ -88,6 +124,27 @@ public class EncodedTrie
         trieGenTask.onProgressUpdate(85);
         wordRank = generateRankDirectory(wordBits);
         trieGenTask.onProgressUpdate(95);
+    }
+
+    // This function writes the generated bitsets to files for later access
+    public void writeBitSets(Context context) throws IOException {
+        ObjectOutputStream wordBitsStream = new ObjectOutputStream(context.openFileOutput("wordBits.ser", 0));
+        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(context.openFileOutput("encodedWords.ser", 0));
+        ObjectOutputStream trieBitsStream = new ObjectOutputStream(context.openFileOutput("trieBits.ser", 0));
+        ObjectOutputStream wordRankStream = new ObjectOutputStream(context.openFileOutput("wordRank.ser", 0));
+        ObjectOutputStream trieRankStream = new ObjectOutputStream(context.openFileOutput("trieRank.ser", 0));
+
+        wordBitsStream.writeObject(wordBits);
+        encodedWordsStream.writeObject(encodedWords);
+        trieBitsStream.writeObject(trieBits);
+        wordRankStream.writeObject(wordRank);
+        trieRankStream.writeObject(trieRank);
+
+        wordBitsStream.close();
+        encodedWordsStream.close();
+        trieBitsStream.close();
+        wordRankStream.close();
+        trieRankStream.close();
     }
 
     // Convert a node's word into a binary representation,

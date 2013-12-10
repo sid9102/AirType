@@ -117,10 +117,13 @@ public class SettingsActivity extends Activity {
 
             onProgressUpdate(50);
 
-            EncodedTrie encodedTrie= new EncodedTrie();
-            encodedTrie.trieGenTask = this;
-
-            encodedTrie.makeEncodedTrie(curTrie);
+            EncodedTrie encodedTrie= new EncodedTrie(curTrie, this);
+            try {
+                encodedTrie.writeBitSets(getApplicationContext());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            onProgressUpdate(100);
 
             return null;
         }
