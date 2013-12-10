@@ -8,6 +8,8 @@ import java.util.LinkedList;
  */
 public class EncodedTrie
 {
+    //TODO: use openBitSet instead, http://lucene.apache.org/core/3_0_3/api/core/org/apache/lucene/util/OpenBitSet.html
+
     // A bitset of all the words assigned to the nodes, indexed breadth first
     // These words are encoded with 0x01 through 0x1a assigned to a through z,
     // 0x1b and 0x1c refer to the beginning of a word fragment and the beginning of a complete word, respectively
@@ -69,6 +71,12 @@ public class EncodedTrie
             encodeNodeChildren(curNode);
         }
         completion = 75;
+        trieGenTask.onProgressUpdate(completion);
+        // Generate the rank directory for the trie bitset
+        trieRank = generateRankDirectory(trieBits);
+        completion = 85;
+        trieGenTask.onProgressUpdate(completion);
+
     }
 
     // Convert a node's word into a binary representation,
@@ -225,8 +233,8 @@ public class EncodedTrie
         return result;
     }
 
-    // Produces a long[] for a given bitset
-    private long[] BitSetToLong(BitSet bitSet)
+    // Produces a long[] from a given bitset
+    private long[] bitSetToLong(BitSet bitSet)
     {
         // figure out how many longs we need, size will always be some multiple of 64
         int size = bitSet.size() / 64;
@@ -236,13 +244,84 @@ public class EncodedTrie
             long bit = 1;
             for(int j = 0; j < 64; j++)
             {
-                if(bitSet.get(j + i * 64))
+                if(bitSet.get(j + (i * 64)))
                 {
                     result[i] = result[i] | bit;
                 }
                 bit <<= 1;
             }
         }
+        return result;
+    }
+
+    // Produces an int[] from a given superblock of the rank counts contained by the blocks
+    private int[] superBlockCounts(BitSet superBlock)
+    {
+        int[] result = new int[7];
+        for(int i = 0; i < 7; i++)
+        {
+            int bit = 1;
+            int count = 0;
+            for(int j = 0; j < 9; j++)
+            {
+                if(superBlock.get(64 + j + (i * 9)))
+                {
+                    count = count | bit;
+                }
+                bit <<= 1;
+            }
+            result[i] = count;
+        }
+        return result;
+    }
+
+    // Returns the rank at a particular index
+    private long rank(int index, BitSet bitSet, BitSet rankDirectory)
+    {
+        long result = 0;
+
+        // First figure out which superblock this index belongs to.
+        // Each superblock represents 2048 bits
+        int superBlockIndex = index / 2048;
+        // Next, figure out which data block it belongs to.
+        // Each data block represents 256 bits
+        int dataBlockIndex = (index % 2048) / 256;
+        // Finally, figure out the index within that data block.
+        int bitIndex = (index % 2048) % 256;
+
+        // Get the superblock, then get the rank of the header
+        BitSet superBlock = rankDirectory.get(superBlockIndex, superBlockIndex + 128);
+        result = bitSetToLong(superBlock)[0];
+
+        //TODO: remove debugging assert
+        if(superBlock.size() != 128)
+        {
+            throw new AssertionError("oh snap that shit ain't right, rank function edition");
+        }
+
+        // Next calculate the rank until the data block.
+        int[] dataBlocks = superBlockCounts(superBlock);
+        for(int i = 0; i < dataBlockIndex; i++)
+        {
+            result += dataBlocks[i];
+        }
+
+        // Now calculate the rank within the data block.
+        // This int is the index of the first bit in the data block to which the bit's index belongs.
+        int dataBlockBitIndex = (superBlockIndex * 2048) + (dataBlockIndex * 256);
+        for(int i = dataBlockBitIndex; i < index; i++)
+        {
+            if(bitSet.get(i))
+            {
+                result++;
+            }
+        }
+
+        // There we go, constant time rank computation!
+        // The first lookup takes one rankDirectory.get call, the second takes 7 iterations of a loop
+        // to get the data blocks and worst case 7 to add them all together, and then finally
+        // worst case 256 bits are counted to get a rank.
+
         return result;
     }
 }
