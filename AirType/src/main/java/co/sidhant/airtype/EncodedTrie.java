@@ -42,6 +42,12 @@ public class EncodedTrie
     private int trieBitIndex;
     private int wordBitsIndex;
 
+    // The current node we have traversed to, and its index
+    private BitSet curNode;
+    private int curNodeIndex;
+    private BitSet curWord;
+
+
     private int completion;
 
     private static SettingsActivity.TrieGenTask trieGenTask;
@@ -249,12 +255,6 @@ public class EncodedTrie
                 }
             }
 
-            //TODO: remove debugging assert
-            if(dataBits.length() >= 64)
-            {
-                throw new AssertionError("oh snap that shit ain't right");
-            }
-
             BitSet headerBits = valueOf(header);
 
             // Insert this superblock into the rank directory
@@ -316,6 +316,8 @@ public class EncodedTrie
     {
         // figure out how many longs we need, size will always be some multiple of 64
         int size = bitSet.size() / 64;
+        if(size == 0)
+            size++;
         long[] result = new long[size];
         for(int i = 0; i < size; i++)
         {
@@ -361,6 +363,7 @@ public class EncodedTrie
         // First figure out which superblock this index belongs to.
         // Each superblock represents 2048 bits
         int superBlockIndex = index / 2048;
+
         // Next, figure out which data block it belongs to.
         // Each data block represents 256 bits
         int dataBlockIndex = (index % 2048) / 256;
@@ -368,8 +371,9 @@ public class EncodedTrie
         int bitIndex = (index % 2048) % 256;
 
         // Get the superblock, then get the rank of the header
-        BitSet superBlock = rankDirectory.get(superBlockIndex, superBlockIndex + 128);
-        result = bitSetToLong(superBlock)[0];
+        BitSet superBlock = rankDirectory.get(superBlockIndex * 128, (superBlockIndex + 1) * 128);
+        long[] header = bitSetToLong(superBlock);
+        result = header[0];
 
         // Next calculate the rank until the data block.
         int[] dataBlocks = superBlockCounts(superBlock);
@@ -381,7 +385,7 @@ public class EncodedTrie
         // Now calculate the rank within the data block.
         // This int is the index of the first bit in the data block to which the bit's index belongs.
         int dataBlockBitIndex = (superBlockIndex * 2048) + (dataBlockIndex * 256);
-        for(int i = dataBlockBitIndex; i < index; i++)
+        for(int i = dataBlockBitIndex; i <= index; i++)
         {
             if(bitSet.get(i))
             {
@@ -417,6 +421,10 @@ public class EncodedTrie
                 upperLimit = searchIndex;
                 searchIndex /= 2;
             }
+
+            // Prevent infinite searching beyond the end of the bitset
+            if(searchIndex > bitSet.length())
+                return -1;
         }
 
         // Now find the actual beginning of this word, search backwards until rank changes
