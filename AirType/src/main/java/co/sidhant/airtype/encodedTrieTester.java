@@ -33,21 +33,23 @@ public class EncodedTrieTester
         {
             if(i % 25 == 0)
             {
-                int rank = (int) rank(i, trieBits, rankDir);
-                if(getRankNaive(trieBits, i) != rank)
-                {
-                    System.out.println("rank mismatch");
-                }
+                System.out.println(i);
+            }
+            int rank = (int) rank(i, trieBits, rankDir);
+            if(getRankNaive(trieBits, i) != rank)
+            {
+                System.out.println("rank mismatch");
+            }
 
-                int naiveSelect = selectNaive(trieBits, rank);
-                int properSelect = select(rank, trieBits, rankDir);
+            int naiveSelect = selectNaive(trieBits, rank);
+            int properSelect = select(rank, trieBits, rankDir);
 
-                if(naiveSelect != properSelect)
-                {
-                    System.out.println("select mismatch, expected " + naiveSelect + ", got " + properSelect);
-                }
+            if(naiveSelect != properSelect)
+            {
+                System.out.println("select mismatch, expected " + naiveSelect + ", got " + properSelect);
             }
         }
+        System.out.println("done");
     }
 
     private static int getRankNaive(BitSet bitSet, int index)
@@ -118,11 +120,8 @@ public class EncodedTrieTester
                 searchIndex /= 2;
             }
 
-            if(oldSearchIndex == searchIndex)
-                break;
-
             // Prevent infinite searching
-            if(searchIndex > bitSet.length())
+            if(searchIndex > bitSet.length() || (oldSearchIndex == searchIndex && rank != i))
                 return -1;
         }
 
