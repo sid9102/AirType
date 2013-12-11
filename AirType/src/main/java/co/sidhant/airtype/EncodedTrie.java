@@ -353,7 +353,7 @@ public class EncodedTrie
         }
         return result;
     }
-    
+
     // Returns the rank at a particular index in the BitSet bitSet, using the rank directory rankDirectory
     private long rank(int index, BitSet bitSet, BitSet rankDirectory)
     {

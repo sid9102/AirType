@@ -17,7 +17,7 @@ public class EncodedTrieTester
 
         Random rand = new Random();
 
-        int bitSize = 20000;
+        int bitSize = 200000;
 
         for(int i = 0; i < bitSize; i++)
         {
@@ -29,27 +29,42 @@ public class EncodedTrieTester
 
         BitSet rankDir = generateRankDirectory(trieBits);
 
+        long totalNaiveRankTime = 0;
+        long totalRankTime = 0;
+        long totalNaiveSelectTime = 0;
+        long totalSelectTime = 0;
+
         for(int i = 0; i < bitSize; i++)
         {
             if(i % 25 == 0)
             {
                 System.out.println(i);
             }
+
+            long timeBefore = System.currentTimeMillis();
             int rank = (int) rank(i, trieBits, rankDir);
-            if(getRankNaive(trieBits, i) != rank)
+            totalRankTime += System.currentTimeMillis() - timeBefore;
+            timeBefore = System.currentTimeMillis();
+            int naiveRank = getRankNaive(trieBits, i);
+            totalNaiveRankTime += System.currentTimeMillis() - timeBefore;
+            if( naiveRank!= rank)
             {
                 System.out.println("rank mismatch");
             }
 
+            timeBefore = System.currentTimeMillis();
             int naiveSelect = selectNaive(trieBits, rank);
+            totalNaiveSelectTime += System.currentTimeMillis() - timeBefore;
+            timeBefore = System.currentTimeMillis();
             int properSelect = select(rank, trieBits, rankDir);
+            totalSelectTime += System.currentTimeMillis() - timeBefore;
 
             if(naiveSelect != properSelect)
             {
                 System.out.println("select mismatch, expected " + naiveSelect + ", got " + properSelect);
             }
         }
-        System.out.println("done");
+        System.out.println("done, naive rank and select took " + totalNaiveRankTime + " and " + totalNaiveSelectTime + ", rank and select took " + totalRankTime + " and " + totalSelectTime);
     }
 
     private static int getRankNaive(BitSet bitSet, int index)
