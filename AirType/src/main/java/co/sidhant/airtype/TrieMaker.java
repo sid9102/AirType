@@ -21,6 +21,7 @@ public class TrieMaker
         ArrayList<String> curList;
         String curWord = "";
         AirTrieNode curNode = mTrie.root;
+        curNode.setWord("sidhant");
         int completion = 0;
         while(it.hasNext())
         {
@@ -59,7 +60,7 @@ public class TrieMaker
             if(curCompletion > completion)
             {
                 completion = curCompletion;
-                trieGenTask.onProgressUpdate(completion);
+                trieGenTask.publish(completion);
             }
         }
         return mTrie;

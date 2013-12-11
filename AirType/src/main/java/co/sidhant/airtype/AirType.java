@@ -1,6 +1,7 @@
 package co.sidhant.airtype;
 
 import android.content.Context;
+import android.content.Intent;
 import android.inputmethodservice.InputMethodService;
 import android.view.KeyEvent;
 import android.view.View;
@@ -9,6 +10,8 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,8 +29,7 @@ public class AirType extends InputMethodService
     private StringBuilder mComposing = new StringBuilder();
     private ArrayList<String> candidatesList;
     public FingerMap fMap = new FingerMap();
-    private static AirTrie curTrie;
-    private AirTrieNode curNode;
+    private static EncodedTrie eTrie;
 
     @Override
     public void onCreate() {
@@ -35,40 +37,29 @@ public class AirType extends InputMethodService
         candidatesList = new ArrayList<String>();
 
         boolean firstRun = true;
-        int ch;
-        StringBuffer fileContent = new StringBuffer("");
-        FileInputStream fis;
         Context mContext = getApplicationContext();
-//        try {
-//            fis = mContext.openFileInput("serialTrie.txt");
-//            try {
-//                while( (ch = fis.read()) != -1)
-//                    fileContent.append((char)ch);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//            firstRun = true;
-//        }
-        String trieString;
+        try
+        {
+            assert mContext != null;
+            mContext.openFileInput("wordBits.ser");
+            firstRun = false;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         if(firstRun)
         {
-            //Do all CPU intensive stuff in another thread!
-            TrieRunnable makeTrie = new TrieRunnable();
-            Thread worker = new Thread(makeTrie);
-            makeTrie.setAirType(this);
-            worker.start();
-            //TODO: update the view instead of blocking until it's done generating
-            try {
-                worker.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            curNode = curTrie.root;
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
         else
-            trieString = new String(fileContent);
+        {
+            try {
+                eTrie = new EncodedTrie(mContext);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -151,14 +142,7 @@ public class AirType extends InputMethodService
         // TODO: determine candidates here
 
         if (mComposing.length() > 0) {
-            candidatesList = new ArrayList<String>();
-            candidatesList.add(curNode.getWord());
-            AirTrieNode altCheck = curNode;
-            while(altCheck.getChildPrecise(8) != null)
-            {
-                candidatesList.add(altCheck.getChild(8).getWord());
-                altCheck = altCheck.getChild(8);
-            }
+            candidatesList = eTrie.getAlts();
             setSuggestions(candidatesList, true, true);
         } else {
             setSuggestions(null, false, false);
@@ -212,7 +196,7 @@ public class AirType extends InputMethodService
             ic.commitText(selection + " ", selection.length() + 1);
         mComposing.setLength(0);
         updateCandidates();
-        curNode = curTrie.root;
+        eTrie.resetCurNode();
         if (mCandidateView != null) {
             mCandidateView.clear();
         }
@@ -321,30 +305,30 @@ public class AirType extends InputMethodService
     public void handleFinger(int keyCode)
     {
         //Punctuation!
-        if(curNode.isEndOfWord())
+        if(eTrie.isEndOfWord())
         {
-            if (curNode.getChildPrecise(keyCode - 8) == null)
+            if (!eTrie.goToChildPrecise(keyCode - 8))
             {
                 //user wants a comma!
                 if(keyCode - 8 == 6)
                 {
-                    mComposing = new StringBuilder(curNode.getWord() + ",");
+                    mComposing = new StringBuilder(eTrie.getWord() + ",");
                     pickSuggestion(0);
                     return;
                 } // user wants a period
                 else if(keyCode - 8 == 7)
                 {
-                    mComposing = new StringBuilder(curNode.getWord() + ".");
+                    mComposing = new StringBuilder(eTrie.getWord() + ".");
                     pickSuggestion(0);
                     return;
                 }
 
             }
         }
-        curNode = curNode.getChild(keyCode - 8);
-        if(curNode != null)
+
+        if(eTrie.goToChild(keyCode - 8))
         {
-            mComposing = new StringBuilder(curNode.getWord());
+            mComposing = new StringBuilder(eTrie.getWord());
             updateCandidates();
             InputConnection ic = getCurrentInputConnection();
             if(ic != null)
@@ -356,12 +340,6 @@ public class AirType extends InputMethodService
                 pickSuggestion(0);
             }
         }
-    }
-
-    // To pass the trie from the new thread spawned to create it
-    public void setTrie(AirTrie trie)
-    {
-        this.curTrie = trie;
     }
 
     public static class stringLengthComparator implements Comparator<String> {

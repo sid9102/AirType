@@ -51,6 +51,5 @@ public class TrieRunnable implements Runnable
                 permutationMap.put(curKey, curList);
             }
         }
-        instance.setTrie(TrieMaker.makeTrie(instance.fMap, permutationMap));
     }
 }

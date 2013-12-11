@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +43,7 @@ public class SettingsActivity extends Activity {
 
     public class TrieGenTask extends AsyncTask<Void, Integer, Void>
     {
+        public AssetManager am;
         //Before running code in separate thread
         @Override
         protected void onPreExecute()
@@ -54,7 +56,6 @@ public class SettingsActivity extends Activity {
         @Override
         protected Void doInBackground(Void... params)
         {
-            AssetManager am = getApplicationContext().getAssets();
             InputStream is = null;
             try {
                 is = am.open("permutations.txt");
@@ -66,16 +67,15 @@ public class SettingsActivity extends Activity {
             try {
                 byte[] c = new byte[1024];
                 lineCount = 0;
-                int readChars = 0;
-                boolean empty = true;
+                int readChars;
                 while ((readChars = is.read(c)) != -1) {
-                    empty = false;
                     for (int i = 0; i < readChars; ++i) {
                         if (c[i] == '\n') {
                             ++lineCount;
                         }
                     }
                 }
+                is.reset();
             }catch (IOException e)
             {
                 e.printStackTrace();
@@ -106,16 +106,16 @@ public class SettingsActivity extends Activity {
                     permutationMap.put(curKey, curList);
                 }
                 progress  = (int) (((float)curLineNum / (float)lineCount) * 25.0f);
-                onProgressUpdate(progress);
+                publishProgress(progress);
             }
 
             TrieMaker.trieGenTask = this;
 
-            onProgressUpdate(25);
+            publishProgress(25);
 
             AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
 
-            onProgressUpdate(50);
+            publishProgress(50);
 
             EncodedTrie encodedTrie= new EncodedTrie(curTrie, this);
             try {
@@ -123,9 +123,15 @@ public class SettingsActivity extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            onProgressUpdate(100);
+            publishProgress(100);
 
             return null;
+        }
+
+        // Publish the progress from elsewhere
+        public void publish(int i)
+        {
+            publishProgress(i);
         }
 
         //Update the progress
@@ -135,6 +141,12 @@ public class SettingsActivity extends Activity {
             //set the current progress of the progress dialog
             progressBar.setProgress(values[0]);
             progressText.setText(values[0].toString() + "%");
+            if(values[0] == 100)
+            {
+                TextView text = (TextView) findViewById(R.id.textView);
+                text.setText("Initial setup complete! Type away!");
+                setupButton.setText(":)");
+            }
         }
 
         //after executing the code in the thread
@@ -169,7 +181,14 @@ public class SettingsActivity extends Activity {
     {
         if(!asyncStart)
         {
-            new TrieGenTask().execute();
+            TrieGenTask trieGenTask = new TrieGenTask();
+            trieGenTask.am = getAssets();
+            trieGenTask.execute();
+            if(setupButton == null)
+            {
+                setupButton = (Button) findViewById(R.id.setupButton);
+            }
+            setupButton.setText("Please Wait");
             setupButton.setClickable(false);
         }
         asyncStart = true;

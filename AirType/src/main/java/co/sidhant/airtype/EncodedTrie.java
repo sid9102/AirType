@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
+import java.util.Random;
 
 /**
  * Created by sid9102 on 11/22/13.
@@ -72,13 +74,31 @@ public class EncodedTrie
         trieBitsStream.close();
         wordRankStream.close();
         trieRankStream.close();
+
+        resetCurNode();
     }
 
     // This constructor is for generating a new encoded trie
     public EncodedTrie(AirTrie trie, SettingsActivity.TrieGenTask trieGenTask)
     {
         this.trieGenTask = trieGenTask;
-        this.makeEncodedTrie(trie);
+        makeEncodedTrie(trie);
+        resetCurNode();
+    }
+
+    // Helper function for resetting the current node to the root node
+    public void resetCurNode()
+    {
+        curNode = trieBits.get(0, 9);
+        curNodeIndex = 0;
+        setCurWord();
+    }
+
+    private void setCurWord()
+    {
+        int index = curNodeIndex + 1;
+        int wordIndex = select(index + 1, wordBits, wordRank) * 5;
+        curWord = encodedWords.get(0, wordIndex);
     }
 
     public void makeEncodedTrie(AirTrie trie)
@@ -117,19 +137,19 @@ public class EncodedTrie
             if(curCompletion > completion)
             {
                 completion = curCompletion;
-                trieGenTask.onProgressUpdate(completion);
+                trieGenTask.publish(completion);
             }
             encodeNodeWord(curNode);
             encodeNodeWordBits(curNode);
             encodeNodeChildren(curNode);
         }
 
-        trieGenTask.onProgressUpdate(75);
+        trieGenTask.publish(75);
         // Generate the rank directory for the trie bitset
         trieRank = generateRankDirectory(trieBits);
-        trieGenTask.onProgressUpdate(85);
+        trieGenTask.publish(85);
         wordRank = generateRankDirectory(wordBits);
-        trieGenTask.onProgressUpdate(95);
+        trieGenTask.publish(95);
     }
 
     // This function writes the generated bitsets to files for later access
@@ -161,13 +181,13 @@ public class EncodedTrie
         if(node.isEndOfWord())
         {
             //encode the word header, complete word, so 11100
-            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 2);
+            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 3);
         }
         else
         {
             //encode the word header, complete word, so 11011
-            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 1);
-            encodedWords.set(encodedWordsIndex + 3, encodedWordsIndex + 4);
+            encodedWords.set(encodedWordsIndex, encodedWordsIndex + 2);
+            encodedWords.set(encodedWordsIndex + 3, encodedWordsIndex + 5);
         }
         encodedWordsIndex += 5;
         String curWord = node.getWord();
@@ -175,12 +195,13 @@ public class EncodedTrie
         for(int i = 0; i < curWord.length(); i++)
         {
             int letter = curWord.charAt(i) - 'a' + 1;
-            String letterBinary = Integer.toBinaryString(letter);
+            int bit = 1;
             for(int j = 0; j < 5; j++)
             {
-                if(letterBinary.charAt(j) == '1')
+                if((letter & bit) != 0)
                     encodedWords.set(encodedWordsIndex);
                 encodedWordsIndex++;
+                bit <<= 1;
             }
         }
     }
@@ -403,8 +424,6 @@ public class EncodedTrie
     // Returns the i-th occurrence of a 1 in the BitSet, by binary searching the rank directory rankDirectory
     private int select(int i, BitSet bitSet, BitSet rankDirectory)
     {
-        if(i == 0)
-            return 1;
         // Start at the middle of the bitset
         int upperLimit = bitSet.length();
         int searchIndex = upperLimit / 2;
@@ -440,4 +459,119 @@ public class EncodedTrie
         return searchIndex;
     }
 
+    // Traverse to the nearest possible child if this child doesn't exist
+    public boolean goToChild(int i)
+    {
+        Random rand = new Random();
+        boolean direction = rand.nextBoolean();
+        if(!goToChildPrecise(i))
+        {
+            int diff = 1;
+            int newChild = i;
+            while(!goToChildPrecise(newChild) && diff < 9)
+            {
+                i += direction ? diff : -diff;
+                diff++;
+                if(i < 0)
+                {
+                    newChild =  i + 8;
+                }
+                else if(i > 8)
+                {
+                    newChild = i - 8;
+                }
+                // flip direction
+                direction ^= true;
+            }
+            if(diff < 9)
+                return true;
+            else
+                return false;
+        }
+        else
+            return true;
+    }
+
+    // Traverse to a certain child, returns true if the child exists
+    public boolean goToChildPrecise(int i)
+    {
+        if(!curNode.get(i))
+        {
+            return false;
+        }
+        else
+        {
+            // Figure out where the child is
+            int childIndex = (int) rank((curNodeIndex * 9) + i, trieBits, trieRank);
+            curNode = trieBits.get(childIndex, childIndex + 9);
+            curNodeIndex = childIndex;
+            setCurWord();
+            return true;
+        }
+    }
+
+    // Default getWord, gets the current word
+    public String getWord()
+    {
+        return getWord(curWord);
+    }
+
+    // Get a word for a provided BitSet
+    public String getWord(BitSet word)
+    {
+        // The curWord may have trailing 0s, we need to make sure
+        // to read until the end of the word,including trailing zeroes.
+        int wordLength = word.length() / 5 + 1;
+        String result = "";
+        for(int i = 5; i < wordLength; i += 5)
+        {
+            int bit = 1;
+            int curLetter = 0;
+            for(int j = i; j < i + 5; j++)
+            {
+                if(word.get(j))
+                {
+                    curLetter |=  bit;
+                }
+                bit <<= 1;
+            }
+            curLetter -= 'a' - 1;
+            char letter = (char) curLetter;
+            result += letter;
+        }
+        return result;
+    }
+
+    // Check if the current word is complete (5 header bits are 0x1c) or a fragment (header bits are 0x1b)
+    public boolean isEndOfWord()
+    {
+        // Simple, check if the header is odd or even, odd means fragment, even means complete word.
+        // The fifth bit of the header is the 1 bit, so a fragment would have "11011" as its header,
+        // while a complete word would have 11100.
+        if(curWord.get(4))
+            return false;
+        else
+            return true;
+    }
+
+    // List all alternate predictions for the candidate view
+    public ArrayList<String> getAlts()
+    {
+        ArrayList<String> result = new ArrayList<String>();
+        BitSet node = curNode;
+        int curIndex = curNodeIndex;
+        while(node.get(8))
+        {
+            // Traverse the 9th child of each 9th child, adding them to a list
+            int childIndex = (int) rank((curIndex * 9) + 8, trieBits, trieRank);
+            node = trieBits.get(childIndex, childIndex + 9);
+            curIndex = childIndex;
+            int wordBegin = select(curIndex + 1, wordBits, wordRank) * 5;
+            int wordEnd = select(curIndex + 2, wordBits, wordRank) * 5;
+            String word = getWord(encodedWords.get(wordBegin, wordEnd));
+            result.add(word);
+        }
+
+        return result;
+    }
 }
