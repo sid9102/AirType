@@ -310,7 +310,6 @@ public class EncodedTrie
         }
         return result;
     }
-
     // Produces a long[] from a given bitset
     private long[] bitSetToLong(BitSet bitSet)
     {
@@ -354,7 +353,7 @@ public class EncodedTrie
         }
         return result;
     }
-
+    
     // Returns the rank at a particular index in the BitSet bitSet, using the rank directory rankDirectory
     private long rank(int index, BitSet bitSet, BitSet rankDirectory)
     {
@@ -404,13 +403,17 @@ public class EncodedTrie
     // Returns the i-th occurrence of a 1 in the BitSet, by binary searching the rank directory rankDirectory
     private int select(int i, BitSet bitSet, BitSet rankDirectory)
     {
+        if(i == 0)
+            return 1;
         // Start at the middle of the bitset
         int upperLimit = bitSet.length();
         int searchIndex = upperLimit / 2;
+        int oldSearchIndex = 0;
         int rank = 0;
         // Binary search!
         while(rank != i)
         {
+            oldSearchIndex = searchIndex;
             rank = (int) rank(searchIndex, bitSet, rankDirectory);
             if(rank < i)
             {
@@ -422,8 +425,8 @@ public class EncodedTrie
                 searchIndex /= 2;
             }
 
-            // Prevent infinite searching beyond the end of the bitset
-            if(searchIndex > bitSet.length())
+            // Prevent infinite searching
+            if(searchIndex > bitSet.length() || (oldSearchIndex == searchIndex && rank != i))
                 return -1;
         }
 
