@@ -10,6 +10,9 @@ public class AirTrieNode
     private String word;
     private boolean endOfWord;
 
+    // For indexing the nodes breadth first
+    public int index;
+
     public AirTrieNode()
     {
         children = new AirTrieNode[9];
@@ -82,7 +85,7 @@ public class AirTrieNode
                 }
             }
         }
-        return result;
+        return null;
     }
 
     // For constructing the trie, we don't want the nearest child

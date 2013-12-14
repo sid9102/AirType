@@ -60,7 +60,8 @@ public class TrieMaker
             if(curCompletion > completion)
             {
                 completion = curCompletion;
-                trieGenTask.publish(completion);
+                if(trieGenTask != null)
+                    trieGenTask.publish(completion);
             }
         }
         return mTrie;
