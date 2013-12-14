@@ -528,37 +528,31 @@ public class EncodedTrie
     }
 
     // Traverse to the nearest possible child if this child doesn't exist
-    public boolean goToChild(int i)
+    public boolean goToChild(int index)
     {
         try{
             Random rand = new Random();
             boolean direction = rand.nextBoolean();
-            if(!goToChildPrecise(i))
+            if(!goToChildPrecise(index))
             {
-                int diff = 1;
-                int newChild = i;
-                while(!goToChildPrecise(newChild) && diff < 9)
+                int diff = 8 - index;
+                if(diff < index)
+                    diff = index;
+                for(int i = 1; i < diff; i++)
                 {
-                    i += direction ? diff : -diff;
-                    diff++;
-                    if(i < 0)
+                    if (index - i >= 0)
                     {
-                        newChild =  i + 8;
+                        if(goToChildPrecise(index - i))
+                            return true;
                     }
-                    else if(i > 8)
+                    if(index + i < 9)
                     {
-                        newChild = i - 8;
+                        if(goToChildPrecise(index + i))
+                            return true;
                     }
-                    // flip direction
-                    direction ^= true;
                 }
-                if(diff < 9)
-                    return true;
-                else
-                    return false;
             }
-            else
-                return true;
+            return false;
         }
         finally
         {
