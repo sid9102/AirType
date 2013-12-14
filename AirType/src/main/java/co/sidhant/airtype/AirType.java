@@ -257,7 +257,7 @@ public class AirType extends InputMethodService
             case KeyEvent.KEYCODE_6:
             case KeyEvent.KEYCODE_7:
             case KeyEvent.KEYCODE_8:
-                handleFinger(keyCode);
+                handleFinger(keyCode - 8);
                 return true;
 
             default:
@@ -307,16 +307,16 @@ public class AirType extends InputMethodService
         //Punctuation!
         if(eTrie.isEndOfWord())
         {
-            if (!eTrie.goToChildPrecise(keyCode - 8))
+            if (!eTrie.goToChildPrecise(keyCode))
             {
                 //user wants a comma!
-                if(keyCode - 8 == 6)
+                if(keyCode == 5)
                 {
                     mComposing = new StringBuilder(eTrie.getWord() + ",");
                     pickSuggestion(0);
                     return;
                 } // user wants a period
-                else if(keyCode - 8 == 7)
+                else if(keyCode == 6)
                 {
                     mComposing = new StringBuilder(eTrie.getWord() + ".");
                     pickSuggestion(0);
@@ -326,7 +326,7 @@ public class AirType extends InputMethodService
             }
         }
 
-        if(eTrie.goToChild(keyCode - 8))
+        if(eTrie.goToChild(keyCode))
         {
             mComposing = new StringBuilder(eTrie.getWord());
             updateCandidates();
