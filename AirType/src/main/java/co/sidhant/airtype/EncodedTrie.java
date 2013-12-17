@@ -1,6 +1,7 @@
 package co.sidhant.airtype;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -111,6 +112,7 @@ public class EncodedTrie
         int wordBegin = select(index, wordBits, wordRank) * 5;
         int wordEnd = select(index + 1, wordBits, wordRank) * 5;
         curWord = encodedWords.get(wordBegin, wordEnd);
+        //Log.v("getting word", "from " + wordBegin + " to" + wordEnd);
     }
 
     public void makeEncodedTrie(AirTrie trie)
@@ -447,7 +449,8 @@ public class EncodedTrie
     private long rank(int index, BitSet bitSet, BitSet rankDirectory)
     {
         long result = 0;
-
+        if(index == 0)
+            return 1;
         // First figure out which superblock this index belongs to.
         // Each superblock represents 2048 bits
         int superBlockIndex = index / 2048;
@@ -530,34 +533,41 @@ public class EncodedTrie
     // Traverse to the nearest possible child if this child doesn't exist
     public boolean goToChild(int index)
     {
-        try{
-            Random rand = new Random();
-            boolean direction = rand.nextBoolean();
-            if(!goToChildPrecise(index))
+        boolean result = false;
+        if(!goToChildPrecise(index))
+        {
+            //Log.v("couldn't find it", Integer.toString(index));
+            int diff = 8 - index;
+            if(diff < index)
+                diff = index;
+            for(int i = 1; i < diff && !result; i++)
             {
-                int diff = 8 - index;
-                if(diff < index)
-                    diff = index;
-                for(int i = 1; i < diff; i++)
+                if (index - i >= 0)
                 {
-                    if (index - i >= 0)
+                    if(goToChildPrecise(index - i))
                     {
-                        if(goToChildPrecise(index - i))
-                            return true;
+                        //Log.v("got", Integer.toString(index - i) + " instead");
+                        result = true;
                     }
-                    if(index + i < 9)
+                }
+                if(index + i < 9 && !result)
+                {
+                    if(goToChildPrecise(index + i))
                     {
-                        if(goToChildPrecise(index + i))
-                            return true;
+                        //Log.v("got", Integer.toString(index + i) + " instead");
+                        result = true;
                     }
                 }
             }
-            return false;
-        }
-        finally
-        {
             setCurWord();
         }
+        else
+        {
+            //Log.v("got it!", Integer.toString(index));
+            result = true;
+        }
+        //Log.v("got word in goto", getWord());
+        return result;
     }
 
     // Traverse to a certain child, returns true if the child exists
@@ -571,11 +581,22 @@ public class EncodedTrie
         {
             // Figure out where the child is
             int childIndex = (int) rank((curNodeIndex * 9) + i, trieBits, trieRank);
-            curNode = trieBits.get(childIndex, childIndex + 9);
+            curNode = trieBits.get(childIndex * 9, childIndex * 9 + 9);
             curNodeIndex = childIndex;
             setCurWord();
             return true;
         }
+    }
+
+    // Check if the current node has any children at all.
+    public boolean hasChildren()
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            if(curNode.get(i))
+                return true;
+        }
+        return false;
     }
 
     // Default getWord, gets the current word

@@ -3,6 +3,7 @@ package co.sidhant.airtype;
 import android.content.Context;
 import android.content.Intent;
 import android.inputmethodservice.InputMethodService;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.CompletionInfo;
@@ -143,6 +144,8 @@ public class AirType extends InputMethodService
 
         if (mComposing.length() > 0) {
             candidatesList = eTrie.getAlts();
+            candidatesList = new ArrayList<String>();
+            candidatesList.add(mComposing.toString());
             setSuggestions(candidatesList, true, true);
         } else {
             setSuggestions(null, false, false);
@@ -265,7 +268,6 @@ public class AirType extends InputMethodService
                     // Handle separator
                     if (mComposing.length() > 0) {
                         mComposing.append(key);
-                        // TODO: don't print number, print 0 position of candidates list!
                         pickSuggestion(0);
                     }
                     return true;
@@ -307,7 +309,7 @@ public class AirType extends InputMethodService
         //Punctuation!
         if(eTrie.isEndOfWord())
         {
-            if (!eTrie.goToChildPrecise(keyCode))
+            if (!eTrie.hasChildren())
             {
                 //user wants a comma!
                 if(keyCode == 5)
@@ -322,12 +324,12 @@ public class AirType extends InputMethodService
                     pickSuggestion(0);
                     return;
                 }
-
             }
         }
 
         if(eTrie.goToChild(keyCode))
         {
+            //eTrie.goToChild(keyCode);
             mComposing = new StringBuilder(eTrie.getWord());
             updateCandidates();
             InputConnection ic = getCurrentInputConnection();
