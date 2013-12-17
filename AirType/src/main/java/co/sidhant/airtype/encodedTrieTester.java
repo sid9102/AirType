@@ -33,7 +33,7 @@ public class EncodedTrieTester
             curLine = s.nextLine();
             if(curLine.endsWith(":"))
             {
-                curKey = curLine.substring(0, curLine.length() - 2);
+                curKey = curLine.substring(0, curLine.length() - 1);
                 curList = new ArrayList<String>();
                 curList.add(s.nextLine());
                 permutationMap.put(curKey, curList);
@@ -51,11 +51,11 @@ public class EncodedTrieTester
         AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
         EncodedTrie encodedTrie = new EncodedTrie(curTrie, null);
 //        autoTester(iterations, encodedTrie, curTrie, permutationMap);
-        String input = "42667";
+        String input = "1403";
         String output = "";
         // First, do things the normal way
         AirTrieNode curNode = curTrie.root;
-        int wordLength = 5;
+        int wordLength = input.length();
         for(int j = 0; j < wordLength; j++)
         {
             int index = Integer.parseInt(input.substring(j, j + 1));

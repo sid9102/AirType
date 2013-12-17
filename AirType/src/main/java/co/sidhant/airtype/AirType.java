@@ -173,7 +173,7 @@ public class AirType extends InputMethodService
         // Clear current composing text and candidates.
         mComposing.setLength(0);
         updateCandidates();
-
+        eTrie.resetCurNode();
         // We only hide the candidates window when finishing input on
         // a particular editor, to avoid popping the underlying application
         // up and down if the user is entering text into the bottom of

@@ -94,7 +94,7 @@ public class SettingsActivity extends Activity {
                 curLineNum++;
                 if(curLine.endsWith(":"))
                 {
-                    curKey = curLine.substring(0, curLine.length() - 2);
+                    curKey = curLine.substring(0, curLine.length() - 1);
                     curList = new ArrayList<String>();
                     curList.add(s.nextLine());
                     permutationMap.put(curKey, curList);

@@ -26,10 +26,11 @@ public class TrieMaker
         while(it.hasNext())
         {
             curNode = mTrie.root;
-            Map.Entry<String, ArrayList<String>> pairs = (Map.Entry<String, ArrayList<String>>) it.next();
+            Map.Entry<String, ArrayList<String>> pairs = it.next();
             curEntry++;
             curList = pairs.getValue();
             curWord = curList.get(0);
+
             for(int i = 0; i < curWord.length(); i++)
             {
                 int childIndex = fmap.getFingerFromLetter(curWord.toLowerCase().charAt(i));
@@ -54,6 +55,7 @@ public class TrieMaker
                     curNode.setChild(new AirTrieNode(), 8);
                     curNode = curNode.getChildPrecise(8);
                     curNode.setWord(curList.get(i));
+                    curNode.setEndOfWord();
                 }
             }
             int curCompletion = (int)(curEntry / totalEntries * 25) + 25;
