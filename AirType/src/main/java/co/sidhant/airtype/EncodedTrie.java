@@ -645,13 +645,13 @@ public class EncodedTrie
     public ArrayList<String> getAlts()
     {
         ArrayList<String> result = new ArrayList<String>();
-        BitSet node = curNode;
+        BitSet node = (BitSet) curNode.clone();
         int curIndex = curNodeIndex;
         while(node.get(8))
         {
             // Traverse the 9th child of each 9th child, adding them to a list
             int childIndex = (int) rank((curIndex * 9) + 8, trieBits, trieRank);
-            node = trieBits.get(childIndex, childIndex + 9);
+            node = trieBits.get(childIndex * 9, childIndex * 9 + 9);
             curIndex = childIndex;
             int wordBegin = select(curIndex + 1, wordBits, wordRank) * 5;
             int wordEnd = select(curIndex + 2, wordBits, wordRank) * 5;

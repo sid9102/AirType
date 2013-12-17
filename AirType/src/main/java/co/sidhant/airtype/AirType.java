@@ -141,11 +141,10 @@ public class AirType extends InputMethodService
     private void updateCandidates() {
 
         // TODO: determine candidates here
-
         if (mComposing.length() > 0) {
-            candidatesList = eTrie.getAlts();
             candidatesList = new ArrayList<String>();
             candidatesList.add(mComposing.toString());
+            candidatesList.addAll(eTrie.getAlts());
             setSuggestions(candidatesList, true, true);
         } else {
             setSuggestions(null, false, false);
