@@ -31,12 +31,16 @@ public class AirType extends InputMethodService
     private ArrayList<String> candidatesList;
     public FingerMap fMap = new FingerMap();
     private static EncodedTrie eTrie;
+    public long lastButtonPress;
+    private boolean newSentence;
+    private boolean wait;
 
     @Override
     public void onCreate() {
         super.onCreate();
         candidatesList = new ArrayList<String>();
-
+        lastButtonPress = System.currentTimeMillis();
+        newSentence = true;
         boolean firstRun = true;
         Context mContext = getApplicationContext();
         try
@@ -131,6 +135,7 @@ public class AirType extends InputMethodService
     public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
         mComposing.setLength(0);
+        eTrie.resetCurNode();
         mCompletions = null;
     }
     /**
@@ -185,14 +190,12 @@ public class AirType extends InputMethodService
     public void pickSuggestion(int index) {
         // TODO: fix this
         String selection;
-        if(index != 0)
+        selection = candidatesList.get(index);
+        if(selection.equals("i") || newSentence)
         {
-            selection = candidatesList.get(index);
+            selection = selection.substring(0, 1).toUpperCase() + selection.substring(1);
         }
-        else
-        {
-            selection = mComposing.toString();
-        }
+        newSentence = false;
         InputConnection ic = getCurrentInputConnection();
         if(ic!= null)
             ic.commitText(selection + " ", selection.length() + 1);
@@ -234,6 +237,7 @@ public class AirType extends InputMethodService
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+
         super.onKeyDown(keyCode, event);
         char key = (char) event.getUnicodeChar();
         switch (keyCode) {
@@ -261,6 +265,11 @@ public class AirType extends InputMethodService
             case KeyEvent.KEYCODE_8:
                 handleFinger(keyCode - 8);
                 return true;
+
+            // Don't do anything with built in buttons!
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_MENU:
+                return false;
 
             default:
                 if (isWordSeparator(key)) {
@@ -300,11 +309,11 @@ public class AirType extends InputMethodService
             default:
                 return true;
         }
-
     }
 
     public void handleFinger(int keyCode)
     {
+        lastButtonPress = System.currentTimeMillis();
         //Punctuation!
         if(eTrie.isEndOfWord())
         {
@@ -320,6 +329,7 @@ public class AirType extends InputMethodService
                 else if(keyCode == 6)
                 {
                     mComposing = new StringBuilder(eTrie.getWord() + ".");
+                    newSentence = true;
                     pickSuggestion(0);
                     return;
                 }
@@ -328,7 +338,6 @@ public class AirType extends InputMethodService
 
         if(eTrie.goToChild(keyCode))
         {
-            //eTrie.goToChild(keyCode);
             mComposing = new StringBuilder(eTrie.getWord());
             updateCandidates();
             InputConnection ic = getCurrentInputConnection();

@@ -50,37 +50,37 @@ public class EncodedTrieTester
         int iterations = 100;
         AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
         EncodedTrie encodedTrie = new EncodedTrie(curTrie, null);
-//        autoTester(iterations, encodedTrie, curTrie, permutationMap);
-        String input = "1403";
-        String output = "";
-        // First, do things the normal way
-        AirTrieNode curNode = curTrie.root;
-        int wordLength = input.length();
-        for(int j = 0; j < wordLength; j++)
-        {
-            int index = Integer.parseInt(input.substring(j, j + 1));
-            curNode = curNode.getChild(index);
-            if(curNode == null)
-                break;
-            output = curNode.getWord();
-            System.out.println(curNode.index + " " + output);
-        }
-        System.out.println("AirTrie got the word " + output + ".");
-
-        // Now provide the same input to encodedTrie
-        encodedTrie.resetCurNode();
-        for(int j = 0; j < wordLength; j++)
-        {
-            int index = Integer.parseInt(input.substring(j, j + 1));
-            if(encodedTrie.goToChild(index))
-            {
-                output = encodedTrie.getWord();
-                System.out.println((encodedTrie.curNodeIndex + 1) + " " + output);
-            }
-            else
-                break;
-        }
-        System.out.println("EncodedTrie got the word " + output + ".");
+        autoTester(iterations, encodedTrie, curTrie, permutationMap);
+//        String input = "1403";
+//        String output = "";
+//        // First, do things the normal way
+//        AirTrieNode curNode = curTrie.root;
+//        int wordLength = input.length();
+//        for(int j = 0; j < wordLength; j++)
+//        {
+//            int index = Integer.parseInt(input.substring(j, j + 1));
+//            curNode = curNode.getChild(index);
+//            if(curNode == null)
+//                break;
+//            output = curNode.getWord();
+//            System.out.println(curNode.index + " " + output);
+//        }
+//        System.out.println("AirTrie got the word " + output + ".");
+//
+//        // Now provide the same input to encodedTrie
+//        encodedTrie.resetCurNode();
+//        for(int j = 0; j < wordLength; j++)
+//        {
+//            int index = Integer.parseInt(input.substring(j, j + 1));
+//            if(encodedTrie.goToChild(index))
+//            {
+//                output = encodedTrie.getWord();
+//                System.out.println((encodedTrie.curNodeIndex + 1) + " " + output);
+//            }
+//            else
+//                break;
+//        }
+//        System.out.println("EncodedTrie got the word " + output + ".");
     }
 
     private static void autoTester(int iterations, EncodedTrie encodedTrie, AirTrie curTrie, TreeMap<String, ArrayList<String>> permutationMap)
