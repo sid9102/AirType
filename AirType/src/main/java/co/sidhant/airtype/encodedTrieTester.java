@@ -1,45 +1,37 @@
 package co.sidhant.airtype;
 
-
 import net.sourceforge.sizeof.SizeOf;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.lang.String;import java.lang.System;
+import java.lang.String;
+import java.lang.System;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.TreeMap;
 
 /**
  * Created by sid9102 on 12/10/13.
- *
+ * <p/>
  * For intensive testing of the encoded trie methods
  */
-public class EncodedTrieTester
-{
-    public static void main(String[] args) throws FileNotFoundException
-    {
+public class EncodedTrieTester {
+    public static void main(String[] args) throws FileNotFoundException {
         // Make the map
         Scanner s = new Scanner(new File("permutations.txt"));
         TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirType.stringLengthComparator());
         String curLine;
         String curKey = "";
         ArrayList<String> curList;
-        while(s.hasNextLine())
-        {
+        while (s.hasNextLine()) {
             curLine = s.nextLine();
-            if(curLine.endsWith(":"))
-            {
+            if (curLine.endsWith(":")) {
                 curKey = curLine.substring(0, curLine.length() - 1);
                 curList = new ArrayList<String>();
                 curList.add(s.nextLine());
                 permutationMap.put(curKey, curList);
-            }
-            else
-            {
+            } else {
                 curList = permutationMap.get(curKey);
                 curList.add(curLine);
                 permutationMap.put(curKey, curList);
@@ -83,12 +75,10 @@ public class EncodedTrieTester
 //        System.out.println("EncodedTrie got the word " + output + ".");
     }
 
-    private static void autoTester(int iterations, EncodedTrie encodedTrie, AirTrie curTrie, TreeMap<String, ArrayList<String>> permutationMap)
-    {
+    private static void autoTester(int iterations, EncodedTrie encodedTrie, AirTrie curTrie, TreeMap<String, ArrayList<String>> permutationMap) {
         long ETSize = 0;
         long ATSize = 0;
-        for(int i = 0; i < iterations; i++)
-        {
+        for (int i = 0; i < iterations; i++) {
             curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
             encodedTrie = new EncodedTrie(curTrie, null);
             ATSize += SizeOf.deepSizeOf(curTrie);
@@ -106,14 +96,12 @@ public class EncodedTrieTester
         long ETTotal = 0;
         long ATTotal = 0;
         long totalLetters = 0;
-        for(int i = 0; i < iterations; i++)
-        {
+        for (int i = 0; i < iterations; i++) {
             int wordLength = rand.nextInt(21);
             totalLetters += wordLength;
             String input = "";
             // Simulate keypresses
-            for(int j = 0; j < wordLength; j++)
-            {
+            for (int j = 0; j < wordLength; j++) {
                 input += Integer.toString(rand.nextInt(8));
             }
             //System.out.println("For input " + input + ";");
@@ -122,12 +110,11 @@ public class EncodedTrieTester
             ATStart = System.nanoTime();
             // First, do things the normal way
             curNode = curTrie.root;
-            for(int j = 0; j < wordLength; j++)
-            {
+            for (int j = 0; j < wordLength; j++) {
                 ATStart = System.nanoTime();
                 int index = Integer.parseInt(input.substring(j, j + 1));
                 curNode = curNode.getChild(index);
-                if(curNode == null)
+                if (curNode == null)
                     break;
                 output = curNode.getWord();
                 //System.out.println(curNode.index + " " + output);
@@ -138,15 +125,12 @@ public class EncodedTrieTester
             // Now provide the same input to encodedTrie
             ETStart = System.nanoTime();
             encodedTrie.resetCurNode();
-            for(int j = 0; j < wordLength; j++)
-            {
+            for (int j = 0; j < wordLength; j++) {
                 int index = Integer.parseInt(input.substring(j, j + 1));
-                if(encodedTrie.goToChild(index))
-                {
+                if (encodedTrie.goToChild(index)) {
                     output = encodedTrie.getWord();
                     //System.out.println(encodedTrie.curNodeIndex + " " + output);
-                }
-                else
+                } else
                     break;
             }
             ETTotal += System.nanoTime() - ETStart;

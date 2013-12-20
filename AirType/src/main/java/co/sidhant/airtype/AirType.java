@@ -23,6 +23,7 @@ import java.util.List;
 public class AirType extends InputMethodService
 {
     private AirTypeView mAirTypeView;
+    private final String TAG = "co.sidhant.airtype.AIRTYPE";
 
     private CandidateView mCandidateView;
     private CompletionInfo[] mCompletions;
@@ -73,7 +74,7 @@ public class AirType extends InputMethodService
         mAirTypeView.mOneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onKeyDown(KeyEvent.KEYCODE_1,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_1) );
+                onKeyDown(KeyEvent.KEYCODE_1, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_1));
             }
         });
         mAirTypeView.mTwoButton.setOnClickListener(new View.OnClickListener() {
@@ -306,6 +307,9 @@ public class AirType extends InputMethodService
 
     @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_MENU:
+                return false;
             default:
                 return true;
         }

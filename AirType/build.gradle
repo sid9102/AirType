@@ -34,5 +34,5 @@ android {
 }
 
 dependencies {
-    compile files('build/libs/SizeOf.jar')
+    compile files('src/main/libs/SizeOf.jar')
 }
