@@ -3,6 +3,7 @@ package co.sidhant.airtype;
 import android.content.Context;
 import android.content.Intent;
 import android.inputmethodservice.InputMethodService;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -56,6 +57,7 @@ public class AirType extends InputMethodService
         if(firstRun)
         {
             Intent intent = new Intent(this, SettingsActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
         else
