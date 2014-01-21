@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: SizeOf">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/AirType/src/main/libs/SizeOf.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

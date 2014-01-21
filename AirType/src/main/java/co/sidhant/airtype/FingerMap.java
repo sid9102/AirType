@@ -9,6 +9,7 @@ public class FingerMap {
 
     public ArrayList<Character>[] fingers;
 
+    // TODO: Store this differently? More efficiently?
     public FingerMap()
     {
         fingers = new ArrayList[8];
@@ -48,7 +49,7 @@ public class FingerMap {
     //returns a finger for a letter
     public int getFingerFromLetter(char letter)
     {
-        ArrayList<Character> curList = new ArrayList<Character>();
+        ArrayList<Character> curList;
         for(int i = 0; i < 8; i++)
         {
             curList = this.fingers[i];

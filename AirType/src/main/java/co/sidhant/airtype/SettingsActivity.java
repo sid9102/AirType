@@ -2,6 +2,7 @@ package co.sidhant.airtype;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,9 +12,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -124,6 +127,14 @@ public class SettingsActivity extends Activity {
                 e.printStackTrace();
             }
             publishProgress(100);
+
+            Context context = getApplicationContext();
+            InputMethodManager imeManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imeManager != null) {
+                imeManager.showInputMethodPicker();
+            } else {
+                Toast.makeText(context, "Error", Toast.LENGTH_LONG).show();
+            }
 
             return null;
         }

@@ -21,6 +21,7 @@ public class AirTypeView extends RelativeLayout {
     protected Button mSixButton;
     protected Button mSevenButton;
     protected Button mEightButton;
+
     public AirTypeView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
@@ -36,19 +37,6 @@ public class AirTypeView extends RelativeLayout {
         mSixButton = (Button) findViewById(R.id.six);
         mSevenButton = (Button) findViewById(R.id.seven);
         mEightButton = (Button) findViewById(R.id.eight);
-        /*mSymbolsButton = (Button) findViewById(R.id.symbols_btn);
-        mSymbolsButton.setOnClickListener(mButtonClickListener);
-        mSymbolsButton.setOnLongClickListener(mButtonLongClickListener);
-        mShiftButton = (Button) findViewById(R.id.shift_btn);
-        mShiftButton.setOnClickListener(mButtonClickListener);
-        mShiftButton.setOnLongClickListener(mButtonLongClickListener);
-        mBackspaceButton = (Button) findViewById(R.id.backspace_btn);
-        mBackspaceButton.setOnClickListener(mButtonClickListener);
-        mBackspaceButton.setOnLongClickListener(mButtonLongClickListener);
-        mSpaceButton = (Button) findViewById(R.id.space_btn);
-        mSpaceButton.setOnClickListener(mButtonClickListener);
-        mSpaceButton.setOnLongClickListener(mButtonLongClickListener);*/
-
     }
 
 }

@@ -5,7 +5,6 @@
     <string name="setup_text">Welcome, please click the button to continue.</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="word_separators">\u0020.,;:!?\n()[]*&amp;@{}/&lt;&gt;_+=|&quot;</string>
 
     <string name="one">1"\n"qaz</string>
     <string name="two">2"\n"wsx</string>

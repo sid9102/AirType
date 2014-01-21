@@ -3,15 +3,14 @@ package co.sidhant.airtype;
 import android.content.Context;
 import android.content.Intent;
 import android.inputmethodservice.InputMethodService;
-import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,107 +22,130 @@ import java.util.List;
  */
 public class AirType extends InputMethodService
 {
-    private AirTypeView mAirTypeView;
     private final String TAG = "co.sidhant.airtype.AIRTYPE";
 
+    // Soft-keyboard view for user input
+    private AirTypeView mKeyboardView;
+
+    // Shows word suggestions above the keyboard
     private CandidateView mCandidateView;
-    private CompletionInfo[] mCompletions;
-    private String mWordSeparators;
-    private StringBuilder mComposing = new StringBuilder();
+
+    // The suggested word the user is typing
+    private StringBuilder mComposing;
+
+    // List of words sorted by frequency that match the current word fragment
     private ArrayList<String> candidatesList;
-    public FingerMap fMap = new FingerMap();
+
+    // Used for fast lookup of words given an integer which represents a finger
     private static EncodedTrie eTrie;
-    public long lastButtonPress;
+
+    // Used for capitalizing the first word of new sentences
     private boolean newSentence;
-    private boolean wait;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        candidatesList = new ArrayList<String>();
-        lastButtonPress = System.currentTimeMillis();
-        newSentence = true;
-        boolean firstRun = true;
-        Context mContext = getApplicationContext();
-        try
-        {
-            assert mContext != null;
-            mContext.openFileInput("wordBits.ser");
-            firstRun = false;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
-        if(firstRun)
-        {
+        candidatesList = new ArrayList<String>();
+        newSentence = true;
+        mComposing = new StringBuilder();
+        initializeTrie();
+
+    }
+
+    private void initializeTrie() {
+        Context context = getApplicationContext();
+
+        try {
+            assert context != null;
+            context.openFileInput("wordBits.ser");
+            // The file exists, so load the encoded trie into memory
+
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "ERROR: " + e.getCause());
+            Log.d(TAG, "word bits wasn't found");
+            // Word bits didn't exist so we need to create it
             Intent intent = new Intent(this, SettingsActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-        }
-        else
-        {
+            e.printStackTrace();
+
+            // Reset to the old input method until we are done initializing. The user can change to
+            // the new one in the settings activity
             try {
-                eTrie = new EncodedTrie(mContext);
-            } catch (Exception e) {
-                e.printStackTrace();
+                InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+                final IBinder token = this.getWindow().getWindow().getAttributes().token;
+                //imm.setInputMethod(token, LATIN);
+                imm.switchToLastInputMethod(token);
+            } catch (Throwable t) { // java.lang.NoSuchMethodError if API_level<11
+                Log.e(TAG, "cannot set the previous input method:");
+                t.printStackTrace();
             }
+        }
+
+        try {
+            eTrie = new EncodedTrie(context);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
+
     @Override
     public View onCreateInputView() {
-        mAirTypeView = (AirTypeView) getLayoutInflater().inflate(R.layout.airtype, null);
-        mAirTypeView.mOneButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView = (AirTypeView) getLayoutInflater().inflate(R.layout.airtype, null);
+        mKeyboardView.mOneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_1, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_1));
             }
         });
-        mAirTypeView.mTwoButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mTwoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_2,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_2) );
             }
         });
-        mAirTypeView.mThreeButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mThreeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_3,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_3) );
             }
         });
-        mAirTypeView.mFourButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mFourButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_4,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_4) );
             }
         });
-        mAirTypeView.mFiveButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mFiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_5,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_5) );
             }
         });
-        mAirTypeView.mSixButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mSixButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_6,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_6) );
             }
         });
-        mAirTypeView.mSevenButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mSevenButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_7,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_7) );
             }
         });
-        mAirTypeView.mEightButton.setOnClickListener(new View.OnClickListener() {
+        mKeyboardView.mEightButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onKeyDown(KeyEvent.KEYCODE_8,new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_8) );
             }
         });
 
-        mWordSeparators = getResources().getString(R.string.word_separators);
-        return mAirTypeView;
+        return mKeyboardView;
     }
 
     @Override
@@ -138,8 +160,11 @@ public class AirType extends InputMethodService
     public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
         mComposing.setLength(0);
-        eTrie.resetCurNode();
-        mCompletions = null;
+        if (eTrie != null) {
+            eTrie.resetCurNode();
+        } else {
+            initializeTrie();
+        }
     }
     /**
      * Update the list of available candidates from the current composing
@@ -181,7 +206,7 @@ public class AirType extends InputMethodService
         // Clear current composing text and candidates.
         mComposing.setLength(0);
         updateCandidates();
-        eTrie.resetCurNode();
+        if (eTrie != null) eTrie.resetCurNode();
         // We only hide the candidates window when finishing input on
         // a particular editor, to avoid popping the underlying application
         // up and down if the user is entering text into the bottom of
@@ -221,15 +246,6 @@ public class AirType extends InputMethodService
             mComposing.setLength(0);
             updateCandidates();
         }
-    }
-
-    private String getWordSeparators() {
-        return mWordSeparators;
-    }
-
-    public boolean isWordSeparator(int code) {
-        String separators = getWordSeparators();
-        return separators.contains(String.valueOf((char)code));
     }
 
 
@@ -275,17 +291,6 @@ public class AirType extends InputMethodService
                 return false;
 
             default:
-                if (isWordSeparator(key)) {
-                    // Handle separator
-                    if (mComposing.length() > 0) {
-                        mComposing.append(key);
-                        pickSuggestion(0);
-                    }
-                    return true;
-                }
-                mComposing.append(key);
-                //getCurrentInputConnection().setComposingText(mComposing, 1);
-                updateCandidates();
                 return true;
         }
 
@@ -319,7 +324,6 @@ public class AirType extends InputMethodService
 
     public void handleFinger(int keyCode)
     {
-        lastButtonPress = System.currentTimeMillis();
         //Punctuation!
         if(eTrie.isEndOfWord())
         {
