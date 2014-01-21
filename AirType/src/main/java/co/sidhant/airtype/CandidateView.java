@@ -33,7 +33,7 @@ public class CandidateView extends View {
 
     private static final int OUT_OF_BOUNDS = -1;
 
-    private AirType mService;
+    private AirTypeIME mService;
     private List<String> mSuggestions;
     private int mSelectedIndex;
     private int mTouchX = OUT_OF_BOUNDS;
@@ -122,7 +122,7 @@ public class CandidateView extends View {
      * A connection back to the service to communicate with the text field
      * @param listener
      */
-    public void setService(AirType listener) {
+    public void setService(AirTypeIME listener) {
         mService = listener;
     }
 

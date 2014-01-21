@@ -12,7 +12,6 @@ import co.sidhant.airtype.R;
  */
 public class AirTypeView extends RelativeLayout {
 
-    private final Context mContext;
     protected Button mOneButton;
     protected Button mTwoButton;
     protected Button mThreeButton;
@@ -24,7 +23,6 @@ public class AirTypeView extends RelativeLayout {
 
     public AirTypeView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
     }
 
     @Override

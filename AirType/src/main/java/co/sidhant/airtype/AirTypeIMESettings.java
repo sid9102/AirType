@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-public class SettingsActivity extends Activity {
+public class AirTypeIMESettings extends Activity {
 
     private ProgressBar progressBar;
     private TextView progressText;
@@ -84,7 +83,7 @@ public class SettingsActivity extends Activity {
                 e.printStackTrace();
             }
 
-            TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirType.stringLengthComparator());
+            TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirTypeIME.stringLengthComparator());
             Scanner s = new Scanner(is);
             String curLine;
             int curLineNum = 0;

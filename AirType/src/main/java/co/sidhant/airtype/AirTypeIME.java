@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Created by sid9102 on 11/19/13.
  */
-public class AirType extends InputMethodService
+public class AirTypeIME extends InputMethodService
 {
     private final String TAG = "co.sidhant.airtype.AIRTYPE";
 
@@ -72,7 +72,7 @@ public class AirType extends InputMethodService
             e.printStackTrace();
 
             // Word bits didn't exist so we need to create it
-            Intent intent = new Intent(this, SettingsActivity.class);
+            Intent intent = new Intent(this, AirTypeIMESettings.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
 

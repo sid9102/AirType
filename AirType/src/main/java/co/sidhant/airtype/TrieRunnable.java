@@ -14,9 +14,9 @@ import java.util.TreeMap;
 public class TrieRunnable implements Runnable
 {
     // Make sure the tree is passed from this thread back to the main thread
-    private AirType instance;
+    private AirTypeIME instance;
 
-    public void setAirType(AirType at)
+    public void setAirType(AirTypeIME at)
     {
         this.instance = at;
     }
@@ -29,7 +29,7 @@ public class TrieRunnable implements Runnable
         } catch (IOException e) {
             e.printStackTrace();
         }
-        TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirType.stringLengthComparator());
+        TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirTypeIME.stringLengthComparator());
         Scanner s = new Scanner(is);
         String curLine;
         String curKey = "";

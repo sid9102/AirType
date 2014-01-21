@@ -1,18 +1,13 @@
 package co.sidhant.airtype;
 
 import android.content.Context;
-import android.util.Log;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
-import java.util.Random;
 
 /**
  * Created by sid9102 on 11/22/13.
@@ -54,7 +49,7 @@ public class EncodedTrie
 
     private int completion;
 
-    private static SettingsActivity.TrieGenTask trieGenTask;
+    private static AirTypeIMESettings.TrieGenTask trieGenTask;
 
     private boolean debug = false;
 
@@ -83,7 +78,7 @@ public class EncodedTrie
     }
 
     // This constructor is for generating a new encoded trie
-    public EncodedTrie(AirTrie trie, SettingsActivity.TrieGenTask trieGenTask)
+    public EncodedTrie(AirTrie trie, AirTypeIMESettings.TrieGenTask trieGenTask)
     {
         this.trieGenTask = trieGenTask;
         makeEncodedTrie(trie);

@@ -20,7 +20,7 @@ public class EncodedTrieTester {
     public static void main(String[] args) throws FileNotFoundException {
         // Make the map
         Scanner s = new Scanner(new File("permutations.txt"));
-        TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirType.stringLengthComparator());
+        TreeMap<String, ArrayList<String>> permutationMap = new TreeMap<String, ArrayList<String>>(new AirTypeIME.stringLengthComparator());
         String curLine;
         String curKey = "";
         ArrayList<String> curList;
