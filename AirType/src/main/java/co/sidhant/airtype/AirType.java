@@ -50,7 +50,6 @@ public class AirType extends InputMethodService
         newSentence = true;
         mComposing = new StringBuilder();
         initializeTrie();
-
     }
 
     private void initializeTrie() {
@@ -59,23 +58,29 @@ public class AirType extends InputMethodService
         try {
             assert context != null;
             context.openFileInput("wordBits.ser");
-            // The file exists, so load the encoded trie into memory
 
+            // The file exists, so load the encoded trie into memory
+            try {
+                eTrie = new EncodedTrie(context);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         } catch (FileNotFoundException e) {
             Log.d(TAG, "ERROR: " + e.getCause());
-            Log.d(TAG, "word bits wasn't found");
+            e.printStackTrace();
+
             // Word bits didn't exist so we need to create it
             Intent intent = new Intent(this, SettingsActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            e.printStackTrace();
 
             // Reset to the old input method until we are done initializing. The user can change to
             // the new one in the settings activity
             try {
                 InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
                 final IBinder token = this.getWindow().getWindow().getAttributes().token;
-                //imm.setInputMethod(token, LATIN);
                 imm.switchToLastInputMethod(token);
             } catch (Throwable t) { // java.lang.NoSuchMethodError if API_level<11
                 Log.e(TAG, "cannot set the previous input method:");
@@ -83,15 +88,7 @@ public class AirType extends InputMethodService
             }
         }
 
-        try {
-            eTrie = new EncodedTrie(context);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
-
 
     @Override
     public View onCreateInputView() {
@@ -156,8 +153,21 @@ public class AirType extends InputMethodService
         return mCandidateView;
     }
 
+    /**
+     * Called to inform the input method that text input has started in an
+     * editor.  You should use this callback to initialize the state of your
+     * input to match the state of the editor given to it.
+     *
+     * @param attribute The attributes of the editor that input is starting
+     * in.
+     * @param restarting Set to true if input is restarting in the same
+     * editor such as because the application has changed the text in
+     * the editor.  Otherwise will be false, indicating this is a new
+     * session with the editor.
+     */
     @Override
     public void onStartInput(EditorInfo attribute, boolean restarting) {
+        // TODO: use attribute and restarting correctly
         super.onStartInput(attribute, restarting);
         mComposing.setLength(0);
         if (eTrie != null) {
@@ -172,8 +182,6 @@ public class AirType extends InputMethodService
      * candidates.
      */
     private void updateCandidates() {
-
-        // TODO: determine candidates here
         if (mComposing.length() > 0) {
             candidatesList = new ArrayList<String>();
             candidatesList.add(mComposing.toString());
@@ -236,19 +244,6 @@ public class AirType extends InputMethodService
 
     }
 
-
-    /**
-     * Helper function to commit any text being composed in to the editor.
-     */
-    private void commitTyped(InputConnection inputConnection) {
-        if (mComposing.length() > 0) {
-            inputConnection.commitText(mComposing, mComposing.length());
-            mComposing.setLength(0);
-            updateCandidates();
-        }
-    }
-
-
     /**
      * Use this to monitor key events being delivered to the application.
      * We get first crack at them, and can either resume them or let them
@@ -258,7 +253,6 @@ public class AirType extends InputMethodService
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         super.onKeyDown(keyCode, event);
-        char key = (char) event.getUnicodeChar();
         switch (keyCode) {
             case KeyEvent.KEYCODE_DEL:
                 // Special handling of the delete key: if we currently are
