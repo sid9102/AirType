@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Cat one">
+
+        <Preference android:title="Acts like a button"
+            android:key="stepone"
+            android:summary="First step to complete"/>
+
+        <CheckBoxPreference
+            android:key="some_key"
+            android:title="checkbox"
+            android:summary="checkbox summary"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

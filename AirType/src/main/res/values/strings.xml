@@ -5,14 +5,15 @@
     <string name="setup_text">Welcome, please click the button to continue.</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
-
-    <string name="one">1"\n"qaz</string>
-    <string name="two">2"\n"wsx</string>
-    <string name="three">3"\n"edc</string>
-    <string name="four">4"\n"rfv"\n"tgb</string>
-    <string name="five">5"\n"yhn"\n"ujm</string>
-    <string name="six">6"\n"ik,</string>
-    <string name="seven">7"\n"ol.</string>
-    <string name="eight">8"\n"p</string>
+    <string name="one">q a z</string>
+    <string name="two">w s x</string>
+    <string name="three">e d c</string>
+    <string name="four">r f v"\n"t g b</string>
+    <string name="five">y h n"\n"u j m</string>
+    <string name="six">i k ,</string>
+    <string name="seven">o l .</string>
+    <string name="eight">p</string>
+    <string name="title_activity_air_type_init">AirTypeInitActivity</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>

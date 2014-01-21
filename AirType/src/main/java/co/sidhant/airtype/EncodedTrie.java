@@ -49,7 +49,7 @@ public class EncodedTrie
 
     private int completion;
 
-    private static AirTypeIMESettings.TrieGenTask trieGenTask;
+    private static AirTypeInitActivity.TrieGenTask trieGenTask;
 
     private boolean debug = false;
 
@@ -78,7 +78,7 @@ public class EncodedTrie
     }
 
     // This constructor is for generating a new encoded trie
-    public EncodedTrie(AirTrie trie, AirTypeIMESettings.TrieGenTask trieGenTask)
+    public EncodedTrie(AirTrie trie, AirTypeInitActivity.TrieGenTask trieGenTask)
     {
         this.trieGenTask = trieGenTask;
         makeEncodedTrie(trie);

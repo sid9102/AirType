@@ -10,7 +10,7 @@ import java.util.TreeMap;
  */
 public class TrieMaker
 {
-    public static AirTypeIMESettings.TrieGenTask trieGenTask; // for the TrieGenTask to keep track of progress
+    public static AirTypeInitActivity.TrieGenTask trieGenTask; // for the TrieGenTask to keep track of progress
 
     public static AirTrie makeTrie(FingerMap fmap, TreeMap<String, ArrayList<String>> permutationMap)
     {
