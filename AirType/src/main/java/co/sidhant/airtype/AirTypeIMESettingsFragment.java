@@ -17,7 +17,38 @@ public class AirTypeIMESettingsFragment extends PreferenceFragment {
         final Context context = getActivity().getApplicationContext();
 
         Preference stepOne = findPreference("stepone");
+        Preference stepTwo = findPreference("steptwo");
+        Preference stepThree = findPreference("stepthree");
+        Preference stepFour = findPreference("stepfour");
+
         stepOne.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                // TODO: launch an activity or something
+                Intent intent = new Intent(context, AirTypeInitActivity.class);
+                startActivity(intent);
+                return true;
+            }
+        });
+        stepTwo.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                // TODO: launch an activity or something
+                Intent intent = new Intent(context, AirTypeInitActivity.class);
+                startActivity(intent);
+                return true;
+            }
+        });
+        stepThree.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                // TODO: launch an activity or something
+                Intent intent = new Intent(context, AirTypeInitActivity.class);
+                startActivity(intent);
+                return true;
+            }
+        });
+        stepFour.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 // TODO: launch an activity or something

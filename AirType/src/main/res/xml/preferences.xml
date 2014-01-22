@@ -3,11 +3,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Cat one">
+        android:title="Get AirType Running">
 
-        <Preference android:title="Acts like a button"
+        <co.sidhant.airtype.AirTypeInitPreference android:title="Initialize"
             android:key="stepone"
-            android:summary="First step to complete"/>
+            android:summary="Click to initialize AirType."/>
+        <co.sidhant.airtype.AirTypeInitPreference
+            android:key="steptwo"
+            android:title="Allow Keyboard"
+            android:summary="Click here to enable AirType as a keyboard."/>
+        <co.sidhant.airtype.AirTypeInitPreference android:title="Select Keyboard"
+            android:key="stepthree"
+            android:summary="Click here to select Airtype as your input device."/>
+        <co.sidhant.airtype.AirTypeInitPreference android:title="Calibrate"
+            android:key="stepfour"
+            android:summary="Click here to calibrate AirType to your typing style."/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Preferences">
 
         <CheckBoxPreference
             android:key="some_key"

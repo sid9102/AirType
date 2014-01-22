@@ -12,7 +12,6 @@ public class AirTypeIMESettings extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-
         // Display the settings fragment as the main content
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new AirTypeIMESettingsFragment()).commit();
