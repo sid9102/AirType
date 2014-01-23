@@ -14,6 +14,9 @@
     <string name="seven">o l .</string>
     <string name="eight">p</string>
     <string name="title_activity_air_type_init">AirTypeInitActivity</string>
-    <string name="hello_world">Hello world!</string>
+
+    <string name="calibrate_intro">Welcome! To calibrate AirType all you have to do is type out
+    some sentences on the next page.</string>
+    <string name="title_activity_calibrate">CalibrateActivity</string>
 
 </resources>

@@ -39,6 +39,10 @@
             android:name="co.sidhant.airtype.AirTypeInitActivity"
             android:label="@string/title_activity_air_type_init" >
         </activity>
+        <activity
+            android:name="co.sidhant.airtype.CalibrateActivity"
+            android:label="@string/title_activity_calibrate" >
+        </activity>
     </application>
 
 </manifest>

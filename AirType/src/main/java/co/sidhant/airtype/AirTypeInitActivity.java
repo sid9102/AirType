@@ -128,13 +128,7 @@ public class AirTypeInitActivity extends Activity {
             }
             publishProgress(100);
 
-            Context context = getApplicationContext();
-            InputMethodManager imeManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imeManager != null) {
-                imeManager.showInputMethodPicker();
-            } else {
-                Toast.makeText(context, "Error", Toast.LENGTH_LONG).show();
-            }
+
 
             return null;
         }
