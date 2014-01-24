@@ -30,6 +30,8 @@ public class AirTypeInitActivity extends Activity {
     private Button setupButton;
     private boolean asyncStart;
 
+    // TODO: move this to a popup dialogue in AirTypeIMESettingsFragment
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,8 +129,6 @@ public class AirTypeInitActivity extends Activity {
                 e.printStackTrace();
             }
             publishProgress(100);
-
-
 
             return null;
         }

@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,10 +56,8 @@ public class AirTypeIME extends InputMethodService
     private void initializeTrie() {
         Context context = getApplicationContext();
 
-        try {
-            assert context != null;
-            context.openFileInput("wordBits.ser");
-
+        File wordbits = getApplicationContext().getFileStreamPath("wordBits.ser");
+        if (wordbits.exists()){
             // The file exists, so load the encoded trie into memory
             try {
                 eTrie = new EncodedTrie(context);
@@ -67,14 +66,8 @@ public class AirTypeIME extends InputMethodService
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "ERROR: " + e.getCause());
-            e.printStackTrace();
-
-            // Word bits didn't exist so we need to create it
-            Intent intent = new Intent(this, AirTypeIMESettings.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+        } else {
+            Log.d(TAG, "Wordbits has not been initialized yet");
 
             // Reset to the old input method until we are done initializing. The user can change to
             // the new one in the settings activity
@@ -86,8 +79,13 @@ public class AirTypeIME extends InputMethodService
                 Log.e(TAG, "cannot set the previous input method:");
                 t.printStackTrace();
             }
-        }
 
+            // Word bits didn't exist so we need to create it
+            Intent intent = new Intent(this, AirTypeIMESettings.class);
+            intent.putExtra("Wordbits", false);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
     }
 
     @Override

@@ -16,9 +16,9 @@ public class AirTypeIMESettings extends Activity {
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new AirTypeIMESettingsFragment()).commit();
 
-
         // TODO: add steps here for calibration, requirements for airtype to work like swype does
     }
+
 
 }
 
