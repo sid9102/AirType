@@ -23,6 +23,10 @@ void loop()
     values[3] = analogRead(A3);
     values[4] = analogRead(A4);
     values[5] = analogRead(A5);
+    values[6] = analogRead(A6);
+    values[7] = analogRead(A7);
+    values[8] = analogRead(A9);
+  
   
     // print out value over the serial port
     
