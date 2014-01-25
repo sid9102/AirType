@@ -40,7 +40,7 @@
             android:label="@string/title_activity_air_type_init" >
         </activity>
         <activity
-            android:name="co.sidhant.airtype.CalibrateActivity"
+            android:name=".FingerMapActivity"
             android:label="@string/title_activity_calibrate" >
         </activity>
     </application>

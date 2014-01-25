@@ -3,14 +3,11 @@ package co.sidhant.airtype;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.input.InputManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.InputDevice;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -79,7 +76,7 @@ public class AirTypeIMESettingsFragment extends PreferenceFragment implements Sh
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 // TODO: launch an activity or something
-                Intent intent = new Intent(context, CalibrateActivity.class);
+                Intent intent = new Intent(context, FingerMapActivity.class);
                 startActivity(intent);
                 return true;
             }
