@@ -6,6 +6,9 @@ float R2 = 0;          // variable to store the R2 value
 float buffer = 0;      // buffer variable for calculation
 // variable used as breaker between sensor values
 int breaker = 20;
+
+int values[10];
+int oldValues[10];
   
 void setup()
 {
@@ -14,52 +17,33 @@ void setup()
 
 void loop()
 {
-    raw = analogRead(A0);
-    int value0 = resistance(raw);
-    raw = analogRead(A1);
-    int value1 = resistance(raw);
-    raw = analogRead(A2);
-    int value2 = resistance(raw);
-    raw = analogRead(A3);
-    int value3 = resistance(raw);
-    raw = analogRead(A4);
-    int value4 = resistance(raw);
-    raw = analogRead(A5);
-    int value5 = resistance(raw);
+    values[0] = analogRead(A0);
+    values[1] = analogRead(A1);
+    values[2] = analogRead(A2);
+    values[3] = analogRead(A3);
+    values[4] = analogRead(A4);
+    values[5] = analogRead(A5);
   
     // print out value over the serial port
-    Serial.write(byte(1)); //prefix
-    Serial.write(value0);
-    Serial.write(byte(breaker)); //end signal
-        
-    Serial.write(byte(2));
-    Serial.write(value1);
-    Serial.write(byte(breaker));
     
-    Serial.write(byte(3));
-    Serial.write(value2);
-    Serial.write(byte(breaker));
-    
-    Serial.write(byte(4));
-    Serial.write(value3);
-    Serial.write(byte(breaker));
-    
-    Serial.write(byte(5));
-    Serial.write(value4);
-    Serial.write(byte(breaker));
-    
-    Serial.write(byte(6));
-    Serial.write(value5);
-    Serial.write(byte(breaker));
+    for(int i = 0; i < 5; i++)
+    {
+      Serial.write(byte(i + 1));
+      Serial.write(absDiff(values[i], oldValues[i]));
+      Serial.write(byte(breaker)); //end signal
+      oldValues[i] = values[i];
+    }
     
     // wait for a bit to not overload the port
     delay(100);
 }
 
-int resistance(int raw)
+int absDiff(int value, int oldValue)
 {
-//  Vout = (5.0 / 1023.0) * raw;    // Calculates the Voltage on th Input PIN
-//  buffer = (Vin / Vout) - 1;
-//  R2 = R1 / buffer;
-  return 1023 - raw;
+  int result = value - oldValue;
+  if(result < 0)
+  {
+    return 0;
+  }
+  return result * 10;
 }
