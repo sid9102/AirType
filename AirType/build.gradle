@@ -34,5 +34,5 @@ android {
 }
 
 dependencies {
-    compile files('src/main/libs/RXTXcomm.jar')
+    compile files('libs/RXTXcomm.jar')
 }

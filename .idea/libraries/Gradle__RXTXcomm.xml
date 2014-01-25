@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: RXTXcomm">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/AirType/libs/RXTXcomm.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
