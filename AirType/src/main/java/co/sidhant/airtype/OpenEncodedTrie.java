@@ -2,41 +2,38 @@ package co.sidhant.airtype;
 
 import android.content.Context;
 
+import org.apache.lucene.util.OpenBitSet;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.LinkedList;
 
 /**
- * Created by sid9102 on 11/22/13.
- * Thanks to this paper on succinct encoding: http://people.eng.unimelb.edu.au/sgog/optimized.pdf
- * and this blog post: http://stevehanov.ca/blog/index.php?id=120
+ * Created by sid9102 on 1/25/14.
  */
-public class EncodedTrie
+public class OpenEncodedTrie
 {
-    //TODO: use openBitSet instead, http://lucene.apache.org/core/3_0_3/api/core/org/apache/lucene/util/OpenBitSet.html
-
     // A bitset of all the words assigned to the nodes, indexed breadth first
     // These words are encoded with 0x01 through 0x1a assigned to a through z,
     // 0x1b and 0x1c refer to the beginning of a word fragment and the beginning of a complete word, respectively
-    private BitSet encodedWords;
+    private OpenBitSet encodedWords;
     // For more useful rank directory generation, this BitSet represents words with a 1 representing the beginning of a word,
     // and a 0 for each letter in the word, so 1 bit for each letter + the header bit for delimiting words.
     // As explained here: http://en.wikipedia.org/wiki/Succinct_data_structure#Examples
-    private BitSet wordBits;
+    private OpenBitSet wordBits;
     // A rank directory of wordBits.
-    private BitSet wordRank;
+    private OpenBitSet wordRank;
 
     // A bitSet of children for each node,
     // 9 bits per node indicating whether a child exists or not, indexed breadth first
-    private BitSet trieBits;
+    private OpenBitSet trieBits;
     // A base64 encoded rank directory (http://people.eng.unimelb.edu.au/sgog/optimized.pdf, page 4)
     // for O(c) rank lookup on the trie string
-    private BitSet trieRank;
+    private OpenBitSet trieRank;
 
     // The current index at which to encode, in the bitsets
     private int encodedWordsIndex;
@@ -44,9 +41,9 @@ public class EncodedTrie
     private int wordBitsIndex;
 
     // The current node we have traversed to, and its index
-    private BitSet curNode;
+    private OpenBitSet curNode;
     public int curNodeIndex;
-    private BitSet curWord;
+    private OpenBitSet curWord;
 
 
     private int completion;
@@ -56,19 +53,24 @@ public class EncodedTrie
     private boolean debug = false;
 
     // This constructor means we want to load some pre-generated bitsets into memory
-    public EncodedTrie(Context context) throws IOException, ClassNotFoundException {
+    public OpenEncodedTrie(Context context) throws IOException, ClassNotFoundException {
 
-        ObjectInputStream wordBitsStream = new ObjectInputStream(context.openFileInput("wordBits.ser"));
-        ObjectInputStream encodedWordsStream = new ObjectInputStream(context.openFileInput("encodedWords.ser"));
-        ObjectInputStream trieBitsStream = new ObjectInputStream(context.openFileInput("trieBits.ser"));
-        ObjectInputStream wordRankStream = new ObjectInputStream(context.openFileInput("wordRank.ser"));
-        ObjectInputStream trieRankStream = new ObjectInputStream(context.openFileInput("trieRank.ser"));
+        ObjectInputStream wordBitsStream = new ObjectInputStream(context.openFileInput("OwordBits.ser"));
+        ObjectInputStream encodedWordsStream = new ObjectInputStream(context.openFileInput("OencodedWords.ser"));
+        ObjectInputStream trieBitsStream = new ObjectInputStream(context.openFileInput("OtrieBits.ser"));
+        ObjectInputStream wordRankStream = new ObjectInputStream(context.openFileInput("OwordRank.ser"));
+        ObjectInputStream trieRankStream = new ObjectInputStream(context.openFileInput("OtrieRank.ser"));
 
-        wordBits = (BitSet) wordBitsStream.readObject();
-        encodedWords = (BitSet) encodedWordsStream.readObject();
-        trieBits = (BitSet) trieBitsStream.readObject();
-        wordRank = (BitSet) wordRankStream.readObject();
-        trieRank = (BitSet) trieRankStream.readObject();
+        long[] wordBitsL = (long[]) wordBitsStream.readObject();
+        wordBits = new OpenBitSet(wordBitsL, wordBitsL.length);
+        long[] encodedWordsL = (long[]) encodedWordsStream.readObject();
+        encodedWords = new OpenBitSet(encodedWordsL, encodedWordsL.length);
+        long[] trieBitsL = (long[]) trieBitsStream.readObject();
+        trieBits = new OpenBitSet(trieBitsL, trieBitsL.length);
+        long[] wordRankL = (long[]) wordRankStream.readObject();
+        wordRank = new OpenBitSet(wordRankL, wordRankL.length);
+        long[] trieRankL = (long[]) trieRankStream.readObject();
+        trieRank = new OpenBitSet(trieRankL, trieRankL.length);
 
         wordBitsStream.close();
         encodedWordsStream.close();
@@ -80,19 +82,24 @@ public class EncodedTrie
     }
 
     // This constructor means we want to load some pre-generated bitsets into memory, on desktop
-    public EncodedTrie() throws IOException, ClassNotFoundException {
+    public OpenEncodedTrie() throws IOException, ClassNotFoundException {
 
-        ObjectInputStream wordBitsStream = new ObjectInputStream(new FileInputStream("wordBits.ser"));
-        ObjectInputStream encodedWordsStream = new ObjectInputStream(new FileInputStream("encodedWords.ser"));
-        ObjectInputStream trieBitsStream = new ObjectInputStream(new FileInputStream("trieBits.ser"));
-        ObjectInputStream wordRankStream = new ObjectInputStream(new FileInputStream("wordRank.ser"));
-        ObjectInputStream trieRankStream = new ObjectInputStream(new FileInputStream("trieRank.ser"));
+        ObjectInputStream wordBitsStream = new ObjectInputStream(new FileInputStream("OwordBits.ser"));
+        ObjectInputStream encodedWordsStream = new ObjectInputStream(new FileInputStream("OencodedWords.ser"));
+        ObjectInputStream trieBitsStream = new ObjectInputStream(new FileInputStream("OtrieBits.ser"));
+        ObjectInputStream wordRankStream = new ObjectInputStream(new FileInputStream("OwordRank.ser"));
+        ObjectInputStream trieRankStream = new ObjectInputStream(new FileInputStream("OtrieRank.ser"));
 
-        wordBits = (BitSet) wordBitsStream.readObject();
-        encodedWords = (BitSet) encodedWordsStream.readObject();
-        trieBits = (BitSet) trieBitsStream.readObject();
-        wordRank = (BitSet) wordRankStream.readObject();
-        trieRank = (BitSet) trieRankStream.readObject();
+        long[] wordBitsL = (long[]) wordBitsStream.readObject();
+        wordBits = new OpenBitSet(wordBitsL, wordBitsL.length);
+        long[] encodedWordsL = (long[]) encodedWordsStream.readObject();
+        encodedWords = new OpenBitSet(encodedWordsL, encodedWordsL.length);
+        long[] trieBitsL = (long[]) trieBitsStream.readObject();
+        trieBits = new OpenBitSet(trieBitsL, trieBitsL.length);
+        long[] wordRankL = (long[]) wordRankStream.readObject();
+        wordRank = new OpenBitSet(wordRankL, wordRankL.length);
+        long[] trieRankL = (long[]) trieRankStream.readObject();
+        trieRank = new OpenBitSet(trieRankL, trieRankL.length);
 
         wordBitsStream.close();
         encodedWordsStream.close();
@@ -104,7 +111,7 @@ public class EncodedTrie
     }
 
     // This constructor is for generating a new encoded trie
-    public EncodedTrie(AirTrie trie, AirTypeInitActivity.TrieGenTask trieGenTask)
+    public OpenEncodedTrie(AirTrie trie, AirTypeInitActivity.TrieGenTask trieGenTask)
     {
         this.trieGenTask = trieGenTask;
         makeEncodedTrie(trie);
@@ -122,9 +129,20 @@ public class EncodedTrie
     // Helper function for resetting the current node to the root node
     public void resetCurNode()
     {
-        curNode = trieBits.get(0, 9);
+        curNode = getSubSet(trieBits, 0, 9);
         curNodeIndex = 0;
         setCurWord();
+    }
+
+    private OpenBitSet getSubSet(OpenBitSet bitset, int begin, int end)
+    {
+        OpenBitSet result = new OpenBitSet();
+        for(int i  = begin; i < end; i++)
+        {
+            if(bitset.get(i))
+                result.set((long) i - begin);
+        }
+        return result;
     }
 
     private void setCurWord()
@@ -132,7 +150,7 @@ public class EncodedTrie
         int index = curNodeIndex + 1;
         int wordBegin = select(index, wordBits, wordRank) * 5;
         int wordEnd = select(index + 1, wordBits, wordRank) * 5;
-        curWord = encodedWords.get(wordBegin, wordEnd);
+        curWord = getSubSet(encodedWords, wordBegin, wordEnd);
         //Log.v("getting word", "from " + wordBegin + " to" + wordEnd);
     }
 
@@ -150,9 +168,9 @@ public class EncodedTrie
         encodedWordsIndex = 0;
         trieBitIndex = 0;
         wordBitsIndex = 0;
-        encodedWords = new BitSet();
-        trieBits = new BitSet();
-        wordBits = new BitSet();
+        encodedWords = new OpenBitSet();
+        trieBits = new OpenBitSet();
+        wordBits = new OpenBitSet();
 
         completion = 50;
         //Breadth first search of the trie, list every string
@@ -193,17 +211,17 @@ public class EncodedTrie
 
     // This function writes the generated bitsets to files for later access
     public void writeBitSets(Context context) throws IOException {
-        ObjectOutputStream wordBitsStream = new ObjectOutputStream(context.openFileOutput("wordBits.ser", 0));
-        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(context.openFileOutput("encodedWords.ser", 0));
-        ObjectOutputStream trieBitsStream = new ObjectOutputStream(context.openFileOutput("trieBits.ser", 0));
-        ObjectOutputStream wordRankStream = new ObjectOutputStream(context.openFileOutput("wordRank.ser", 0));
-        ObjectOutputStream trieRankStream = new ObjectOutputStream(context.openFileOutput("trieRank.ser", 0));
+        ObjectOutputStream wordBitsStream = new ObjectOutputStream(context.openFileOutput("OwordBits.ser", 0));
+        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(context.openFileOutput("OencodedWords.ser", 0));
+        ObjectOutputStream trieBitsStream = new ObjectOutputStream(context.openFileOutput("OtrieBits.ser", 0));
+        ObjectOutputStream wordRankStream = new ObjectOutputStream(context.openFileOutput("OwordRank.ser", 0));
+        ObjectOutputStream trieRankStream = new ObjectOutputStream(context.openFileOutput("OtrieRank.ser", 0));
 
-        wordBitsStream.writeObject(wordBits);
-        encodedWordsStream.writeObject(encodedWords);
-        trieBitsStream.writeObject(trieBits);
-        wordRankStream.writeObject(wordRank);
-        trieRankStream.writeObject(trieRank);
+        wordBitsStream.writeObject(wordBits.getBits());
+        encodedWordsStream.writeObject(encodedWords.getBits());
+        trieBitsStream.writeObject(trieBits.getBits());
+        wordRankStream.writeObject(wordRank.getBits());
+        trieRankStream.writeObject(trieRank.getBits());
 
         wordBitsStream.close();
         encodedWordsStream.close();
@@ -214,17 +232,17 @@ public class EncodedTrie
 
     // This function writes the generated bitsets to files for later access, on desktop
     public void writeBitSets() throws IOException {
-        ObjectOutputStream wordBitsStream = new ObjectOutputStream(new FileOutputStream("wordBits.ser"));
-        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(new FileOutputStream("encodedWords.ser"));
-        ObjectOutputStream trieBitsStream = new ObjectOutputStream(new FileOutputStream("trieBits.ser"));
-        ObjectOutputStream wordRankStream = new ObjectOutputStream(new FileOutputStream("wordRank.ser"));
-        ObjectOutputStream trieRankStream = new ObjectOutputStream(new FileOutputStream("trieRank.ser"));
+        ObjectOutputStream wordBitsStream = new ObjectOutputStream(new FileOutputStream("OwordBits.ser"));
+        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(new FileOutputStream("OencodedWords.ser"));
+        ObjectOutputStream trieBitsStream = new ObjectOutputStream(new FileOutputStream("OtrieBits.ser"));
+        ObjectOutputStream wordRankStream = new ObjectOutputStream(new FileOutputStream("OwordRank.ser"));
+        ObjectOutputStream trieRankStream = new ObjectOutputStream(new FileOutputStream("OtrieRank.ser"));
 
-        wordBitsStream.writeObject(wordBits);
-        encodedWordsStream.writeObject(encodedWords);
-        trieBitsStream.writeObject(trieBits);
-        wordRankStream.writeObject(wordRank);
-        trieRankStream.writeObject(trieRank);
+        wordBitsStream.writeObject(wordBits.getBits());
+        encodedWordsStream.writeObject(encodedWords.getBits());
+        trieBitsStream.writeObject(trieBits.getBits());
+        wordRankStream.writeObject(wordRank.getBits());
+        trieRankStream.writeObject(trieRank.getBits());
 
         wordBitsStream.close();
         encodedWordsStream.close();
@@ -344,9 +362,9 @@ public class EncodedTrie
     // Generate a rank directory for the given BitSet
     // A rank directory is a directory of the number of 1's until that point in a BitSet
     // useful for constant time searching of a byte array
-    private BitSet generateRankDirectory(BitSet bitSet)
+    private OpenBitSet generateRankDirectory(OpenBitSet bitSet)
     {
-        BitSet rankDir = new BitSet();
+        OpenBitSet rankDir = new OpenBitSet();
         int superBlockIndex = 0;
         long rank = 0;
 
@@ -361,7 +379,7 @@ public class EncodedTrie
             long[] header = new long[1];
             header[0] = rank;
             // This bitset maintains the bits for the 7 data blocks
-            BitSet dataBits = new BitSet();
+            OpenBitSet dataBits = new OpenBitSet();
             // This loop runs once per data block
             for(int j = 0; j < 7; j++)
             {
@@ -388,7 +406,7 @@ public class EncodedTrie
                 }
             }
 
-            BitSet headerBits = valueOf(header);
+            OpenBitSet headerBits = valueOf(header);
 
             // Insert this superblock into the rank directory
             for(int j = 0; j < 128; j++)
@@ -425,9 +443,9 @@ public class EncodedTrie
     }
 
     // Returns a bitset from a provided long[]
-    private BitSet valueOf(long[] longs)
+    private OpenBitSet valueOf(long[] longs)
     {
-        BitSet result = new BitSet();
+        OpenBitSet result = new OpenBitSet();
         for(int i = 0; i < longs.length; i++)
         {
             long bit = 1;
@@ -444,10 +462,10 @@ public class EncodedTrie
         return result;
     }
     // Produces a long[] from a given bitset
-    private long[] bitSetToLong(BitSet bitSet)
+    private long[] bitSetToLong(OpenBitSet bitSet)
     {
         // figure out how many longs we need, size will always be some multiple of 64
-        int size = bitSet.size() / 64;
+        int size = (int) bitSet.size() / 64;
         if(size == 0)
             size++;
         long[] result = new long[size];
@@ -467,7 +485,7 @@ public class EncodedTrie
     }
 
     // Produces an int[] from a given superblock of the rank counts contained by the blocks
-    private int[] superBlockCounts(BitSet superBlock)
+    private int[] superBlockCounts(OpenBitSet superBlock)
     {
         int[] result = new int[7];
         for(int i = 0; i < 7; i++)
@@ -488,7 +506,7 @@ public class EncodedTrie
     }
 
     // Returns the rank at a particular index in the BitSet bitSet, using the rank directory rankDirectory
-    private long rank(int index, BitSet bitSet, BitSet rankDirectory)
+    private long rank(int index, OpenBitSet bitSet, OpenBitSet rankDirectory)
     {
         long result = 0;
         if(index == 0)
@@ -504,7 +522,7 @@ public class EncodedTrie
         int bitIndex = (index % 2048) % 256;
 
         // Get the superblock, then get the rank of the header
-        BitSet superBlock = rankDirectory.get(superBlockIndex * 128, (superBlockIndex + 1) * 128);
+        OpenBitSet superBlock = getSubSet(rankDirectory, superBlockIndex * 128, (superBlockIndex + 1) * 128);
         long[] header = bitSetToLong(superBlock);
         result = header[0];
 
@@ -535,7 +553,7 @@ public class EncodedTrie
     }
 
     // Returns the i-th occurrence of a 1 in the BitSet, by binary searching the rank directory rankDirectory
-    private int select(int i, BitSet bitSet, BitSet rankDirectory)
+    private int select(int i, OpenBitSet bitSet, OpenBitSet rankDirectory)
     {
         // Start at the middle of the bitset
         int upperLimit = bitSet.length();
@@ -623,7 +641,7 @@ public class EncodedTrie
         {
             // Figure out where the child is
             int childIndex = (int) rank((curNodeIndex * 9) + i, trieBits, trieRank);
-            curNode = trieBits.get(childIndex * 9, childIndex * 9 + 9);
+            curNode = getSubSet(trieBits, childIndex * 9, childIndex * 9 + 9);
             curNodeIndex = childIndex;
             setCurWord();
             return true;
@@ -648,7 +666,7 @@ public class EncodedTrie
     }
 
     // Get a word for a provided BitSet
-    public String getWord(BitSet word)
+    public String getWord(OpenBitSet word)
     {
         // The curWord may have trailing 0s, we need to make sure
         // to read until the end of the word,including trailing zeroes.
@@ -687,17 +705,17 @@ public class EncodedTrie
     public ArrayList<String> getAlts()
     {
         ArrayList<String> result = new ArrayList<String>();
-        BitSet node = (BitSet) curNode.clone();
+        OpenBitSet node = (OpenBitSet) curNode.clone();
         int curIndex = curNodeIndex;
         while(node.get(8))
         {
             // Traverse the 9th child of each 9th child, adding them to a list
             int childIndex = (int) rank((curIndex * 9) + 8, trieBits, trieRank);
-            node = trieBits.get(childIndex * 9, childIndex * 9 + 9);
+            node = getSubSet(trieBits, childIndex * 9, childIndex * 9 + 9);
             curIndex = childIndex;
             int wordBegin = select(curIndex + 1, wordBits, wordRank) * 5;
             int wordEnd = select(curIndex + 2, wordBits, wordRank) * 5;
-            String word = getWord(encodedWords.get(wordBegin, wordEnd));
+            String word = getWord(getSubSet(encodedWords, wordBegin, wordEnd));
             result.add(word);
         }
 
