@@ -4,13 +4,10 @@ import android.content.Context;
 
 import org.apache.lucene.util.OpenBitSet;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.LinkedList;
 
 /**
@@ -85,9 +82,9 @@ public class EncodedTrie
     }
 
     // This constructor is for generating a new encoded trie
-    public EncodedTrie(AirTrie trie, AirTypeInitActivity.TrieGenTask trieGenTask)
+    public EncodedTrie(AirTrie trie, AirTypeInitActivity.TrieGenTask tgTask)
     {
-        this.trieGenTask = trieGenTask;
+        trieGenTask = tgTask;
         makeEncodedTrie(trie);
         resetCurNode();
     }
@@ -110,20 +107,14 @@ public class EncodedTrie
 
     private OpenBitSet getSubSet(OpenBitSet bitset, int begin, int end)
     {
-        OpenBitSet result = new OpenBitSet();
-        for(int i  = begin; i < end; i++)
-        {
-            if(bitset.get(i))
-                result.set((long) i - begin);
-        }
-        return result;
+        return SuccinctEncoding.getSubSet(bitset, begin, end);
     }
 
     private void setCurWord()
     {
         int index = curNodeIndex + 1;
-        int wordBegin = select(index, wordBits, wordRank) * 5;
-        int wordEnd = select(index + 1, wordBits, wordRank) * 5;
+        int wordBegin = SuccinctEncoding.select(index, wordBits, wordRank) * 5;
+        int wordEnd = SuccinctEncoding.select(index + 1, wordBits, wordRank) * 5;
         curWord = getSubSet(encodedWords, wordBegin, wordEnd);
         //Log.v("getting word", "from " + wordBegin + " to" + wordEnd);
     }
@@ -175,21 +166,21 @@ public class EncodedTrie
         completion = 75;
         publishProgress();
         // Generate the rank directory for the trie bitset
-        trieRank = generateRankDirectory(trieBits);
+        trieRank = SuccinctEncoding.generateRankDirectory(trieBits);
         completion = 85;
         publishProgress();
-        wordRank = generateRankDirectory(wordBits);
+        wordRank = SuccinctEncoding.generateRankDirectory(wordBits);
         completion = 95;
         publishProgress();
     }
 
     // This function writes the generated bitsets to files for later access
     public void writeBitSets(Context context) throws IOException {
-        ObjectOutputStream wordBitsStream = new ObjectOutputStream(context.openFileOutput("wordBits.ser", 0));
-        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(context.openFileOutput("encodedWords.ser", 0));
-        ObjectOutputStream trieBitsStream = new ObjectOutputStream(context.openFileOutput("trieBits.ser", 0));
-        ObjectOutputStream wordRankStream = new ObjectOutputStream(context.openFileOutput("wordRank.ser", 0));
-        ObjectOutputStream trieRankStream = new ObjectOutputStream(context.openFileOutput("trieRank.ser", 0));
+        ObjectOutputStream wordBitsStream = new ObjectOutputStream(context.openFileOutput("wordBits.ser", Context.MODE_PRIVATE));
+        ObjectOutputStream encodedWordsStream = new ObjectOutputStream(context.openFileOutput("encodedWords.ser", Context.MODE_PRIVATE));
+        ObjectOutputStream trieBitsStream = new ObjectOutputStream(context.openFileOutput("trieBits.ser", Context.MODE_PRIVATE));
+        ObjectOutputStream wordRankStream = new ObjectOutputStream(context.openFileOutput("wordRank.ser", Context.MODE_PRIVATE));
+        ObjectOutputStream trieRankStream = new ObjectOutputStream(context.openFileOutput("trieRank.ser", Context.MODE_PRIVATE));
 
         wordBitsStream.writeObject(wordBits.getBits());
         encodedWordsStream.writeObject(encodedWords.getBits());
@@ -312,237 +303,6 @@ public class EncodedTrie
         }
     }
 
-    // Generate a rank directory for the given BitSet
-    // A rank directory is a directory of the number of 1's until that point in a BitSet
-    // useful for constant time searching of a byte array
-    private OpenBitSet generateRankDirectory(OpenBitSet bitSet)
-    {
-        OpenBitSet rankDir = new OpenBitSet();
-        int superBlockIndex = 0;
-        long rank = 0;
-
-        // We're allocating 64 bits for a superblock header,
-        // and then another 64, for 7 9-bit data blocks. A superblock is therefore 128 bits in size.
-        // This means that each data block is a jump of 256 bits in the input BitSet,
-        // and each superblock is (1 + 7) * 256 bits, or 2048 bits
-        int i = 0;
-        while(i < bitSet.length())
-        {
-            // Superblock header
-            long[] header = new long[1];
-            header[0] = rank;
-            // This bitset maintains the bits for the 7 data blocks
-            OpenBitSet dataBits = new OpenBitSet();
-            // This loop runs once per data block
-            for(int j = 0; j < 7; j++)
-            {
-                long oldValue = rank;
-                // This loop updates the rank 256 times, traversing the size of a data block
-                for(int k = 0; k < 256; k++)
-                {
-                    if(bitSet.get(i))
-                    {
-                        rank++;
-                    }
-                    i++;
-                }
-                // Encode each data block
-                int block = (int) (rank - oldValue);
-                int bit = 1;
-                for(int k = 0; k < 9; k++)
-                {
-                    if((bit & block) != 0)
-                    {
-                        dataBits.set(k + (j * 9));
-                    }
-                    bit <<= 1;
-                }
-            }
-
-            OpenBitSet headerBits = valueOf(header);
-
-            // Insert this superblock into the rank directory
-            for(int j = 0; j < 128; j++)
-            {
-                if(j < 64)
-                {
-                    if(headerBits.get(j))
-                    {
-                        rankDir.set(j + (superBlockIndex * 128));
-                    }
-                }
-                else
-                {
-                    if(dataBits.get(j - 64))
-                    {
-                        rankDir.set(j + (superBlockIndex * 128));
-                    }
-                }
-            }
-
-            // Update rank for the next superblock header
-            for(int k = 0; k < 256; k++)
-            {
-                if(bitSet.get(i))
-                {
-                    rank++;
-                }
-                i++;
-            }
-            superBlockIndex++;
-        }
-
-        return rankDir;
-    }
-
-    // Returns a bitset from a provided long[]
-    private OpenBitSet valueOf(long[] longs)
-    {
-        OpenBitSet result = new OpenBitSet();
-        for(int i = 0; i < longs.length; i++)
-        {
-            long bit = 1;
-            for(int j = 0; j < 64; j++)
-            {
-                // Check the bit at j
-                if((bit & longs[i]) != 0)
-                {
-                    result.set(j + (i * 64));
-                }
-                bit <<= 1;
-            }
-        }
-        return result;
-    }
-    // Produces a long[] from a given bitset
-    private long[] bitSetToLong(OpenBitSet bitSet)
-    {
-        // figure out how many longs we need, size will always be some multiple of 64
-        int size = (int) bitSet.size() / 64;
-        if(size == 0)
-            size++;
-        long[] result = new long[size];
-        for(int i = 0; i < size; i++)
-        {
-            long bit = 1;
-            for(int j = 0; j < 64; j++)
-            {
-                if(bitSet.get(j + (i * 64)))
-                {
-                    result[i] = result[i] | bit;
-                }
-                bit <<= 1;
-            }
-        }
-        return result;
-    }
-
-    // Produces an int[] from a given superblock of the rank counts contained by the blocks
-    private int[] superBlockCounts(OpenBitSet superBlock)
-    {
-        int[] result = new int[7];
-        for(int i = 0; i < 7; i++)
-        {
-            int bit = 1;
-            int count = 0;
-            for(int j = 0; j < 9; j++)
-            {
-                if(superBlock.get(64 + j + (i * 9)))
-                {
-                    count = count | bit;
-                }
-                bit <<= 1;
-            }
-            result[i] = count;
-        }
-        return result;
-    }
-
-    // Returns the rank at a particular index in the BitSet bitSet, using the rank directory rankDirectory
-    private long rank(int index, OpenBitSet bitSet, OpenBitSet rankDirectory)
-    {
-        long result = 0;
-        if(index == 0)
-            return 1;
-        // First figure out which superblock this index belongs to.
-        // Each superblock represents 2048 bits
-        int superBlockIndex = index / 2048;
-
-        // Next, figure out which data block it belongs to.
-        // Each data block represents 256 bits
-        int dataBlockIndex = (index % 2048) / 256;
-        // Finally, figure out the index within that data block.
-        int bitIndex = (index % 2048) % 256;
-
-        // Get the superblock, then get the rank of the header
-        OpenBitSet superBlock = getSubSet(rankDirectory, superBlockIndex * 128, (superBlockIndex + 1) * 128);
-        long[] header = bitSetToLong(superBlock);
-        result = header[0];
-
-        // Next calculate the rank until the data block.
-        int[] dataBlocks = superBlockCounts(superBlock);
-        for(int i = 0; i < dataBlockIndex; i++)
-        {
-            result += dataBlocks[i];
-        }
-
-        // Now calculate the rank within the data block.
-        // This int is the index of the first bit in the data block to which the bit's index belongs.
-        int dataBlockBitIndex = (superBlockIndex * 2048) + (dataBlockIndex * 256);
-        for(int i = dataBlockBitIndex; i <= index; i++)
-        {
-            if(bitSet.get(i))
-            {
-                result++;
-            }
-        }
-
-        // There we go, constant time rank computation!
-        // The first lookup takes one rankDirectory.get call, the second takes 7 iterations of a loop
-        // to get the data blocks and worst case 7 to add them all together, and then finally
-        // worst case 256 bits are counted to get a rank.
-
-        return result;
-    }
-
-    // Returns the i-th occurrence of a 1 in the BitSet, by binary searching the rank directory rankDirectory
-    private int select(int i, OpenBitSet bitSet, OpenBitSet rankDirectory)
-    {
-        // Start at the middle of the bitset
-        int upperLimit = bitSet.length();
-        int searchIndex = upperLimit / 2;
-        int oldSearchIndex = 0;
-        int rank = 0;
-        // Binary search!
-        while(rank != i)
-        {
-            oldSearchIndex = searchIndex;
-            rank = (int) rank(searchIndex, bitSet, rankDirectory);
-            if(rank < i)
-            {
-                searchIndex += (upperLimit - searchIndex)/ 2;
-            }
-            else if(rank > i)
-            {
-                upperLimit = searchIndex;
-                searchIndex /= 2;
-            }
-
-            // Prevent infinite searching
-            if(searchIndex > bitSet.length() || (oldSearchIndex == searchIndex && rank != i))
-                return -1;
-        }
-
-        // Now find the actual beginning of this word, search backwards until rank changes
-        while(rank == i)
-        {
-            searchIndex--;
-            rank = (int) rank(searchIndex, bitSet, rankDirectory);
-        }
-        searchIndex++;
-        return searchIndex;
-    }
-
     // Traverse to the nearest possible child if this child doesn't exist
     public boolean goToChild(int index)
     {
@@ -593,7 +353,7 @@ public class EncodedTrie
         else
         {
             // Figure out where the child is
-            int childIndex = (int) rank((curNodeIndex * 9) + i, trieBits, trieRank);
+            int childIndex = (int) SuccinctEncoding.rank((curNodeIndex * 9) + i, trieBits, trieRank);
             curNode = getSubSet(trieBits, childIndex * 9, childIndex * 9 + 9);
             curNodeIndex = childIndex;
             setCurWord();
@@ -615,35 +375,7 @@ public class EncodedTrie
     // Default getWord, gets the current word
     public String getWord()
     {
-        return getWord(curWord);
-    }
-
-    // Get a word for a provided BitSet
-    public String getWord(OpenBitSet word)
-    {
-        // The curWord may have trailing 0s, we need to make sure
-        // to read until the end of the word,including trailing zeroes.
-        String result = "";
-        for(int i = 1; i < word.length() + 1; i++)
-        {
-            int bit = 1;
-            int curLetter = 0;
-            int curStart = i * 5;
-            for(int j = curStart; j < curStart + 5; j++)
-            {
-                if(word.get(j))
-                {
-                    curLetter |=  bit;
-                }
-                bit <<= 1;
-            }
-            if(curLetter >= 27 || curLetter <= 0)
-                return result;
-            curLetter += 0x60;
-            char letter = (char) curLetter;
-            result += letter;
-        }
-        return result;
+        return SuccinctEncoding.getWord(curWord);
     }
 
     // Check if the current word is complete (5 header bits are 0x1c) or a fragment (header bits are 0x1b)
@@ -658,17 +390,17 @@ public class EncodedTrie
     public ArrayList<String> getAlts()
     {
         ArrayList<String> result = new ArrayList<String>();
-        OpenBitSet node = (OpenBitSet) curNode.clone();
+        OpenBitSet node = curNode.clone();
         int curIndex = curNodeIndex;
         while(node.get(8))
         {
             // Traverse the 9th child of each 9th child, adding them to a list
-            int childIndex = (int) rank((curIndex * 9) + 8, trieBits, trieRank);
+            int childIndex = (int) SuccinctEncoding.rank((curIndex * 9) + 8, trieBits, trieRank);
             node = getSubSet(trieBits, childIndex * 9, childIndex * 9 + 9);
             curIndex = childIndex;
-            int wordBegin = select(curIndex + 1, wordBits, wordRank) * 5;
-            int wordEnd = select(curIndex + 2, wordBits, wordRank) * 5;
-            String word = getWord(getSubSet(encodedWords, wordBegin, wordEnd));
+            int wordBegin = SuccinctEncoding.select(curIndex + 1, wordBits, wordRank) * 5;
+            int wordEnd = SuccinctEncoding.select(curIndex + 2, wordBits, wordRank) * 5;
+            String word = SuccinctEncoding.getWord(getSubSet(encodedWords, wordBegin, wordEnd));
             result.add(word);
         }
 
