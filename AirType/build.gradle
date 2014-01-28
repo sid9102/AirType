@@ -34,6 +34,6 @@ android {
 }
 
 dependencies {
-    compile files('libs/RXTXcomm.jar')
     compile files('libs/lucene-core-4.6.0.jar')
+    compile files('libs/RXTXcomm.jar')
 }

@@ -45,7 +45,6 @@ public class EncodedTrie
     public int curNodeIndex;
     private OpenBitSet curWord;
 
-
     private int completion;
 
     private static AirTypeInitActivity.TrieGenTask trieGenTask;

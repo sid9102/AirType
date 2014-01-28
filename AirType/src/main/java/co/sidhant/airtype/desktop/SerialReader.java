@@ -1,5 +1,6 @@
 package co.sidhant.airtype.desktop;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -18,29 +19,37 @@ public class SerialReader implements SerialPortEventListener
 {
     SerialPort serialPort;
     /** The port we're normally going to use. */
-    private static final String PORT_NAMES[] = {                  "/dev/tty.usbserial-A9007UX1", // Mac OS X
-            "/dev/ttyUSB0", // Linux
-            "COM22", // Windows
+    private static final String PORT_NAMES[] = {
+            "/dev/tty.usbmodem641",
+            "/dev/cu.usbmodem641"
     };
+
+    /* Read binary data from the port */
     private BufferedReader input;
+    /** The output stream to the port */
     private OutputStream output;
+    /** Milliseconds to block while waiting for port open */
     private static final int TIME_OUT = 2000;
+    /** Default bits per second for COM port. */
     private static final int DATA_RATE = 9600;
 
     public void initialize() {
         CommPortIdentifier portId = null;
         Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
 
-        //First, Find an instance of serial port as set in PORT_NAMES.
-        while (portEnum.hasMoreElements()) {
+        // First, Find an instance of serial port as set in PORT_NAMES.
+        while (portEnum.hasMoreElements() && portId == null) {
             CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
+            System.out.println(currPortId.getName());
             for (String portName : PORT_NAMES) {
                 if (currPortId.getName().equals(portName)) {
+                    System.out.println("Using port: " + portName);
                     portId = currPortId;
                     break;
                 }
             }
         }
+
         if (portId == null) {
             System.out.println("Could not find COM port.");
             return;
@@ -76,11 +85,8 @@ public class SerialReader implements SerialPortEventListener
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                String inputLine=null;
-                if (input.ready()) {
-                    inputLine = input.readLine();
-                    System.out.println(inputLine);
-                }
+                String data = input.readLine();
+                System.out.println("Data: "+ data);
 
             } catch (Exception e) {
                 System.err.println(e.toString());
