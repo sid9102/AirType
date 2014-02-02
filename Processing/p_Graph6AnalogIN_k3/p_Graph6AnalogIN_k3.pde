@@ -17,21 +17,21 @@ int xWidth = 1200;
 int yHeight = 750;
 
 // xPos input array, using prefix
-int[] xPosArr= {0,0,0,0,0,0}; 
+int[] xPosArr= {0,0,0,0,0,0,0,0}; 
 
-// 
-int[] messageArr= {0,0,0,0,0,0}; 
+
+int[] messageArr= {0,0,0,0,0,0,0,0}; 
   
 // Arrays for threshholding
-int[] threshMax= {0,0,0,0,0,0}; 
-int[] threshMin= {0,0,0,0,0,0}; 
+int[] threshMax= {0,0,0,0,0,0,0,0}; 
+int[] threshMin= {0,0,0,0,0,0,0,0}; 
   
 // variables for serial connection. portname and baudrate are user specific
 Serial port1;
 
 //Set your serial port here (look at list printed when you run the application once)
 String V3 = Serial.list()[1];
-String portname1 = "COM22";
+String portname1 = "COM6";
 int baudrate = 9600;
   
 int prefix = 1;
@@ -72,6 +72,9 @@ void setup(){
     threshMin[3] = 0;   // four
     threshMin[4] = 0;   // five
     threshMin[5] = 0;   // six
+    threshMin[6] = 0;  //seven
+    threshMin[7] = 0;    //eight
+   
     
     //MAX 
     threshMax[0] = 300;   // one
@@ -80,6 +83,8 @@ void setup(){
     threshMax[3] = 300;   // four
     threshMax[4] = 300;   // five
     threshMax[5] = 300;   // six
+    threshMax[6] = 300;   // seven
+    threshMax[7] = 300;   // eight
 }//end setup
 
 
@@ -91,7 +96,7 @@ void draw(){
   // listen to serial port and trigger serial event  
   while(port1.available() > 0){
         
-        for(int i = 0; i < 6; i++)
+        for(int i = 0; i < 8; i++)
           {
             serialIN = port1.read();
             if(serialIN == -1)

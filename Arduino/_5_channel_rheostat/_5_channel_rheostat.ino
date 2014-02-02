@@ -17,6 +17,28 @@ void setup()
 
 void loop()
 {
+<<<<<<< HEAD
+    values[0] = analogRead(A0);
+    values[1] = analogRead(A1);
+    values[2] = analogRead(A2);
+    values[3] = analogRead(A3);
+    values[4] = analogRead(A4);
+    values[5] = analogRead(A5);
+    values[6] = analogRead(A6);
+    values[7] = analogRead(A7);
+  
+  
+  
+    // print out value over the serial port
+    
+    for(int i = 0; i < 8; i++)
+    {
+      Serial.write(byte(i + 1));
+      Serial.write(absDiff(values[i], oldValues[i]));
+      Serial.write(byte(breaker)); //end signal
+      oldValues[i] = values[i];
+    }
+=======
   
    // TODO: eventually we should write this as bytes
    // instead of printlns to increase efficiency 
@@ -30,6 +52,7 @@ void loop()
    Serial.println(analogRead(A6));
    Serial.println(analogRead(A7));
    Serial.println(analogRead(A8));
+>>>>>>> 96cd185b8bd2901e16ffccffaf6164436ab4645a
     
     // wait for a bit to not overload the port
     delay(800);

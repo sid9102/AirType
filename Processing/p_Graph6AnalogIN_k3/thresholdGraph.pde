@@ -14,7 +14,7 @@ String fontname = "Monaco-14.vlw";
 String inputName = "";
 float gridSpacing = width/20.0;
 int gridValues = 50;
-float potiHeight = height/6.0;
+float potiHeight = height/8.0;
 int potiWidth = 30;
 int poti_ID = 0;
 float scaleValue = width/1000.0;
@@ -47,6 +47,11 @@ ThresholdGraph(){
       if (i == 3){ fill(211, 82, 232); inputName = "four";}
       if (i == 4){ fill(100, 141, 224); inputName = "five";}
       if (i == 5){ fill(2, 82, 232); inputName = "six";}
+      if (i == 6){ fill(255, 82, 232); inputName = "seven";}
+      if (i == 7){ fill(2, 150, 232); inputName = "eight";}
+      
+      
+      
       
       // draw poti at xpos 
       rect(xPosArr[i]*scaleValue-potiWidth/2, i*potiHeight, potiWidth, potiHeight);

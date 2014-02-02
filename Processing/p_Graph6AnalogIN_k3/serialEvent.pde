@@ -1,6 +1,6 @@
 void serialEvent(int serialINPUT){
   if(myCatch == true) {
-    if(serialINPUT != 6) {        
+    if(serialINPUT != 8) {        
       // add event to buffer
       buffer += char(serialINPUT); 
       //println(serialINPUT);      
@@ -16,7 +16,7 @@ void serialEvent(int serialINPUT){
   } 
   //myCatch is the beginging of the each sended number used to define the port
   // myCatch gets true if serial is less than 10 since header is 1-9
-  if (!myCatch && serialINPUT < 6) { 
+  if (!myCatch && serialINPUT < 8) { 
     myCatch = true;
     prefix = int(serialINPUT);
   }
