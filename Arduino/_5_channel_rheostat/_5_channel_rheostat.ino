@@ -33,7 +33,7 @@ void loop()
     for(int i = 0; i < 8; i++)
     {
       Serial.write(byte(i + 1));
-      Serial.write(absDiff(values[i], oldValues[i]));
+      Serial.write(values[i]);
       Serial.write(byte(breaker)); //end signal
       oldValues[i] = values[i];
     }
