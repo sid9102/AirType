@@ -1,10 +1,12 @@
 package co.sidhant.airtype.desktop;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -17,7 +19,7 @@ import gnu.io.SerialPortEventListener;
 
 public class SerialReader implements SerialPortEventListener
 {
-    SerialPort serialPort;
+    private SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
             "/dev/tty.usbmodem641",
@@ -32,6 +34,8 @@ public class SerialReader implements SerialPortEventListener
     private static final int TIME_OUT = 2000;
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 9600;
+
+    protected static Hashtable<Double, ArrayList<Integer>> sensorData;
 
     public void initialize() {
         CommPortIdentifier portId = null;
@@ -85,10 +89,17 @@ public class SerialReader implements SerialPortEventListener
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                String data = input.readLine();
-                System.out.println("Data: "+ data);
+                // Parse input data
+                String[] data = input.readLine().split(":");
+                ArrayList<Integer> sensorValues = new ArrayList<Integer>();
+                for (int i = 1; i < data.length; i++){
+                    sensorValues.add(Integer.parseInt(data[i]));
+                }
+                if (data.length > 0){
+                    sensorData.put(Double.parseDouble(data[0]), sensorValues);
+                }
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.err.println(e.toString());
             }
         }
@@ -98,6 +109,7 @@ public class SerialReader implements SerialPortEventListener
     public static void main(String[] args) throws Exception {
         SerialReader main = new SerialReader();
         main.initialize();
+        sensorData = new Hashtable<Double, ArrayList<Integer>>();
         Thread t=new Thread() {
             public void run() {
                 //the following line will keep this app alive for 1000    seconds,
