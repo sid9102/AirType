@@ -5,7 +5,7 @@ float R1 = 10;         // variable to store the R1 value
 float R2 = 0;          // variable to store the R2 value
 float buffer = 0;      // buffer variable for calculation
 // variable used as breaker between sensor values
-int breaker = 255;
+int breaker = 20;
 
 int values[10];
 int oldValues[10];
@@ -17,7 +17,6 @@ void setup()
 
 void loop()
 {
-<<<<<<< HEAD
     values[0] = analogRead(A0);
     values[1] = analogRead(A1);
     values[2] = analogRead(A2);
@@ -26,7 +25,7 @@ void loop()
     values[5] = analogRead(A5);
     values[6] = analogRead(A6);
     values[7] = analogRead(A7);
-  
+
   
   
     // print out value over the serial port
@@ -38,24 +37,9 @@ void loop()
       Serial.write(byte(breaker)); //end signal
       oldValues[i] = values[i];
     }
-=======
-  
-   // TODO: eventually we should write this as bytes
-   // instead of printlns to increase efficiency 
-   Serial.println("break");
-   Serial.println(analogRead(A0));
-   Serial.println(analogRead(A1));
-   Serial.println(analogRead(A2));
-   Serial.println(analogRead(A3));
-   Serial.println(analogRead(A4));
-   Serial.println(analogRead(A5));
-   Serial.println(analogRead(A6));
-   Serial.println(analogRead(A7));
-   Serial.println(analogRead(A8));
->>>>>>> 96cd185b8bd2901e16ffccffaf6164436ab4645a
     
     // wait for a bit to not overload the port
-    delay(800);
+    delay(100);
 }
 
 int absDiff(int value, int oldValue)
