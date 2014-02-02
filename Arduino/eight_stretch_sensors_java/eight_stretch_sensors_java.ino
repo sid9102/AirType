@@ -20,6 +20,10 @@ void loop()
     values[6] = analogRead(A1);
     values[7] = analogRead(A0);
   
+    //Prints the time in ms since the program started running.
+    Serial.println("TIME");
+    Serial.println(millis());
+    Serial.println("ENDTIME");    
     // print out value over the serial port    
     for(int i = 0; i < 8; i++)
     {
