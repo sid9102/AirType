@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -35,7 +39,7 @@ public class SerialReader implements SerialPortEventListener
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 9600;
 
-    protected static Hashtable<Double, ArrayList<Integer>> sensorData;
+    protected static ConcurrentHashMap<Double, ArrayList<Integer>> sensorData;
 
     public void initialize() {
         CommPortIdentifier portId = null;
@@ -109,7 +113,7 @@ public class SerialReader implements SerialPortEventListener
     public static void main(String[] args) throws Exception {
         SerialReader main = new SerialReader();
         main.initialize();
-        sensorData = new Hashtable<Double, ArrayList<Integer>>();
+        sensorData = new ConcurrentHashMap<Double, ArrayList<Integer>>();
         Thread t=new Thread() {
             public void run() {
                 //the following line will keep this app alive for 1000    seconds,
