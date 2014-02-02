@@ -30,8 +30,8 @@ int[] threshMin= {0,0,0,0,0,0,0,0};
 Serial port1;
 
 //Set your serial port here (look at list printed when you run the application once)
-String V3 = Serial.list()[1];
-String portname1 = "COM6";
+String V3 = Serial.list()[0];
+String portname1 = "COM22";
 int baudrate = 9600;
   
 int prefix = 1;
@@ -39,7 +39,8 @@ boolean myCatch = true;
 int serialIN = 0;
 int serialINPUT = 0; 
 String buffer = ""; 
-int value = 0; 
+int value = 0;
+int breaker = 123;
 
 // ThresholdGraph draws grid and poti states
 ThresholdGraph in;
@@ -77,14 +78,14 @@ void setup(){
    
     
     //MAX 
-    threshMax[0] = 300;   // one
-    threshMax[1] = 300;   // two
-    threshMax[2] = 300;   // three
-    threshMax[3] = 300;   // four
-    threshMax[4] = 300;   // five
-    threshMax[5] = 300;   // six
-    threshMax[6] = 300;   // seven
-    threshMax[7] = 300;   // eight
+    threshMax[0] = 999;   // one
+    threshMax[1] = 999;   // two
+    threshMax[2] = 999;   // three
+    threshMax[3] = 999;   // four
+    threshMax[4] = 999;   // five
+    threshMax[5] = 999;   // six
+    threshMax[6] = 999;   // seven
+    threshMax[7] = 999;   // eight
 }//end setup
 
 
@@ -103,10 +104,10 @@ void draw(){
             {
               break;
             }
-            xPosArr[serialIN - 1] = port1.read();
-            while(serialIN != 20)
+            if(serialIN < 9)
             {
-              serialIN = port1.read();
+              int val = 0;
+              xPosArr[serialIN - 1] = port1.read() * 4;
             }
           }
         }
