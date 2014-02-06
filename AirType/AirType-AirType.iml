@@ -93,6 +93,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="lucene-core-4.6.0" level="project" />
     <orderEntry type="library" exported="" name="RXTXcomm" level="project" />
+    <orderEntry type="library" exported="" name="bullib" level="project" />
   </component>
 </module>
 
