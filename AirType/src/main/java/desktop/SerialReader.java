@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +12,8 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+
+import prediction.test.*;
 
 /**
  * Created by sid9102 on 1/24/14.
@@ -38,7 +39,7 @@ public class SerialReader implements SerialPortEventListener
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 9600;
 
-    protected static ConcurrentHashMap<Double, ArrayList<Integer>> sensorData;
+    protected static ConcurrentHashMap<Double, Data> sensorData;
 
     public void initialize() {
         CommPortIdentifier portId = null;
@@ -81,7 +82,6 @@ public class SerialReader implements SerialPortEventListener
         }
     }
 
-
     public synchronized void close() {
         if (serialPort != null) {
             serialPort.removeEventListener();
@@ -101,7 +101,8 @@ public class SerialReader implements SerialPortEventListener
                     sensorValues.add(Integer.parseInt(parsedData[i]));
                 }
                 if (parsedData.length > 0){
-                    sensorData.put(Double.parseDouble(parsedData[0]), sensorValues);
+                    // Add the data to the hashmap
+                    sensorData.put(Double.parseDouble(parsedData[0]), new testData(sensorValues));
                 }
 
             } catch (IOException e) {
@@ -114,7 +115,7 @@ public class SerialReader implements SerialPortEventListener
     public static void main(String[] args) throws Exception {
         SerialReader main = new SerialReader();
         main.initialize();
-        sensorData = new ConcurrentHashMap<Double, ArrayList<Integer>>();
+        sensorData = new ConcurrentHashMap<Double, new testData(null)>();
         Thread t=new Thread() {
             public void run() {
                 //the following line will keep this app alive for 1000    seconds,
@@ -123,6 +124,23 @@ public class SerialReader implements SerialPortEventListener
             }
         };
         t.start();
+
+
         System.out.println("Started");
+    }
+
+    private static class testData implements Data
+    {
+        public testData(ArrayList<Integer> data){
+            long i = 0;
+            int bitshift = 0;
+            long currentValue = 0;
+            for (int c : data){
+               // currentValue =
+            }
+        }
+        public double getValue(){
+
+        }
     }
 }
