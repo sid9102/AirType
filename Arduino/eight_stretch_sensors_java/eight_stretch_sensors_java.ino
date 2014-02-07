@@ -3,6 +3,7 @@ float buffer = 0;      // buffer variable for calculation
 String breaker = "END";
 int values[10];
 int oldValues[10];
+unsigned long time;
   
 void setup()
 {
@@ -19,19 +20,23 @@ void loop()
     values[5] = analogRead(A2);
     values[6] = analogRead(A1);
     values[7] = analogRead(A0);
+    time = millis(); // Store the current time since the program began
   
+    String data = "";
     //Prints the time in ms since the program started running.
-    Serial.print(millis()+":");
+    
+    data.concat(time);
+    data.concat(":");
     // print out value over the serial port    
     for(int i = 0; i < 8; i++)
     {
-      Serial.print(abs(values[i]));
+      data.concat(abs(values[i]));
       if (i != 7){ 
-        Serial.print(":");
+        data.concat(":");
       }
       oldValues[i] = values[i];
     }
-    Serial.print("\n");
+    Serial.println(data);
     
     // wait for a bit to not overload the port
     delay(100);

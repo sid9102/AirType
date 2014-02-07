@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +23,8 @@ public class SerialReader implements SerialPortEventListener
     private SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
+            "/dev/tty.usbmodem621",
+            "/dev/cu.usbmodem621",
             "/dev/tty.usbmodem641",
             "/dev/cu.usbmodem641"
     };
@@ -90,13 +93,15 @@ public class SerialReader implements SerialPortEventListener
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
                 // Parse input data
-                String[] data = input.readLine().split(":");
+                String data = input.readLine();
+                String[] parsedData = data.split(":");
+                System.out.println(data);
                 ArrayList<Integer> sensorValues = new ArrayList<Integer>();
-                for (int i = 1; i < data.length; i++){
-                    sensorValues.add(Integer.parseInt(data[i]));
+                for (int i = 1; i < parsedData.length; i++){
+                    sensorValues.add(Integer.parseInt(parsedData[i]));
                 }
-                if (data.length > 0){
-                    sensorData.put(Double.parseDouble(data[0]), sensorValues);
+                if (parsedData.length > 0){
+                    sensorData.put(Double.parseDouble(parsedData[0]), sensorValues);
                 }
 
             } catch (IOException e) {
