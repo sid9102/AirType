@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="co.sidhant.airtype"
+    package="io.airtype"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -16,7 +16,7 @@
 
         <!-- IME Service -->
         <service
-            android:name="co.sidhant.airtype.AirTypeIME"
+            android:name=".AirTypeIME"
             android:permission="android.permission.BIND_INPUT_METHOD" >
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
@@ -29,14 +29,14 @@
 
         <!-- Settings activity -->
         <activity
-            android:name="co.sidhant.airtype.AirTypeIMESettings"
+            android:name=".AirTypeIMESettings"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
         <activity
-            android:name="co.sidhant.airtype.AirTypeInitActivity"
+            android:name=".AirTypeInitActivity"
             android:label="@string/title_activity_air_type_init" >
         </activity>
         <activity

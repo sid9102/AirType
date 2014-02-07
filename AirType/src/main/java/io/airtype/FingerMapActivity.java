@@ -1,4 +1,4 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.app.Activity;
 import android.app.Fragment;

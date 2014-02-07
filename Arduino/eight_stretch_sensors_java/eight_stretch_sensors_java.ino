@@ -21,17 +21,17 @@ void loop()
     values[7] = analogRead(A0);
   
     //Prints the time in ms since the program started running.
-    Serial.println("TIME");
-    Serial.println(millis());
-    Serial.println("ENDTIME");    
+    Serial.print(millis()+":");
     // print out value over the serial port    
     for(int i = 0; i < 8; i++)
     {
-      Serial.println(i + 1);
-      Serial.println(abs(values[i]));
-      Serial.println(breaker); //end signal
+      Serial.print(abs(values[i]));
+      if (i != 7){ 
+        Serial.print(":");
+      }
       oldValues[i] = values[i];
     }
+    Serial.print("\n");
     
     // wait for a bit to not overload the port
     delay(100);

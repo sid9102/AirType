@@ -5,17 +5,20 @@
     <PreferenceCategory
         android:title="Get AirType Running">
 
-        <co.sidhant.airtype.AirTypeInitPreference android:title="Initialize"
+        <io.airtype.AirTypeInitPreference
+            android:title="Initialize"
             android:key="stepone"
             android:summary="Click to initialize AirType."/>
-        <co.sidhant.airtype.AirTypeInitPreference
+        <io.airtype.AirTypeInitPreference
             android:key="steptwo"
             android:title="Allow Keyboard"
             android:summary="Click here to enable AirType as a keyboard."/>
-        <co.sidhant.airtype.AirTypeInitPreference android:title="Select Keyboard"
+        <io.airtype.AirTypeInitPreference
+            android:title="Select Keyboard"
             android:key="stepthree"
             android:summary="Click here to select Airtype as your input device."/>
-        <co.sidhant.airtype.AirTypeInitPreference android:title="Calibrate"
+        <io.airtype.AirTypeInitPreference
+            android:title="Calibrate"
             android:key="stepfour"
             android:summary="Click here to calibrate AirType to your typing style."/>
 

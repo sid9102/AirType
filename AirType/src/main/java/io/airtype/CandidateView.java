@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.content.Context;
 import android.content.res.Resources;

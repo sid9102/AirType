@@ -1,4 +1,4 @@
-package co.sidhant.airtype.desktop;
+package desktop;
 
 /**
  * Created by sid9102 on 1/24/14.

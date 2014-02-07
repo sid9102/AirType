@@ -1,4 +1,4 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,11 +12,11 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
 
 /**
  * Created by sid9102 on 11/19/13.

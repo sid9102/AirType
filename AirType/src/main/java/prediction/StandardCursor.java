@@ -1,4 +1,4 @@
-package co.sidhant.airtype.prediction;
+package prediction;
 
 import bullib.network.Cursor;
 import bullib.network.Network;

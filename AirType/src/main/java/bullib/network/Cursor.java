@@ -1,6 +1,5 @@
 package bullib.network;
 
-import bullib.network.Network;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;

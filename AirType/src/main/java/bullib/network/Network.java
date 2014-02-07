@@ -1,7 +1,5 @@
 package bullib.network;
 
-import bullib.network.Weight;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;

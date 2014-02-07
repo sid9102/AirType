@@ -1,4 +1,4 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import java.util.ArrayList;
 import java.util.Map;

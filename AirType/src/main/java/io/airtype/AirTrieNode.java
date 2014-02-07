@@ -1,4 +1,4 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 /**
  * Created by sid9102 on 11/19/13.

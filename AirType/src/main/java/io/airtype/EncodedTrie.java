@@ -1,4 +1,4 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.content.Context;
 

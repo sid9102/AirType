@@ -1,8 +1,7 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.preference.Preference;
 
 
 public class AirTypeIMESettings extends Activity {

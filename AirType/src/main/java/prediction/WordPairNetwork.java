@@ -1,4 +1,4 @@
-package co.sidhant.airtype.prediction;
+package prediction;
 
 import java.util.Collection;
 import java.util.Collections;

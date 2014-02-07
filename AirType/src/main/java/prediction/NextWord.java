@@ -1,4 +1,4 @@
-package co.sidhant.airtype.prediction;
+package prediction;
 
 import java.io.File;
 import java.util.Collections;
@@ -8,10 +8,10 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import bullib.utility.Utility;
 import bullib.network.Cursor;
 import bullib.network.Network;
 import bullib.network.Weight;
-import bullib.utility.Utility;
 
 public class NextWord{
 	private Network<String> network;

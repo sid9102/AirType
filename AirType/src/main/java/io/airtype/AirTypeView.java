@@ -1,11 +1,9 @@
-package co.sidhant.airtype;
+package io.airtype;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.Button;
 import android.widget.RelativeLayout;
-
-import co.sidhant.airtype.R;
 
 /**
  * Created by pfista on 11/15/13.
