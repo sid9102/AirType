@@ -13,13 +13,34 @@ int oldValues[10];
 #define CTRL_REG1  0x2A
 
 #define GSCALE 2 // Sets full-scale range to +/-2, 4, or 8g. Used to calc real g values.
-  
+
+// Possible shield addresses (suffix correspond to DIP switch positions)
+#define SHIELD_ADDR_OFF_OFF_OFF (0x70) 
+#define SHIELD_ADDR_OFF_OFF_ON (0x74) 
+#define SHIELD_ADDR_OFF_ON_OFF (0x72) 
+#define SHIELD_ADDR_OFF_ON_ON (0x76) 
+#define SHIELD_ADDR_ON_OFF_OFF (0x71) 
+#define SHIELD_ADDR_ON_OFF_ON (0x75) 
+#define SHIELD_ADDR_ON_ON_OFF (0x73) 
+#define SHIELD_ADDR_ON_ON_ON (0x77) 
+// Set the shield address here
+const uint8_t shieldAddr = SHIELD_ADDR_OFF_OFF_OFF; 
+
 void setup()
 {
-  Serial.begin(9600);             // Setup serial
+  Serial.begin(9600);             // Setup seria
   
   Wire.begin(); //Join the bus as a master
-  initMMA8452(); //Test and intialize the MMA8452
+  
+  for(int i = 0; i<2; i++){
+    int y; 
+    y = 1<<i; 
+    Wire.beginTransmission(shieldAddr); 
+    Wire.write(y); 
+    Wire.endTransmission(); 
+    initMMA8452(); //Test and intialize the MMA8452
+  
+  }
 }
 
 void loop()
@@ -33,16 +54,7 @@ void loop()
     values[6] = analogRead(A1);
     values[7] = analogRead(A0);
     
-  int accelCount[3];  // Stores the 12-bit signed value -accelerometer
-  readAccelData(accelCount);  // Read the x/y/z adc values -accelerometer
 
-  // Now we'll calculate the accleration value into actual g's
-  float accelG[3];  // Stores the real accel value in g's
-  for (int i = 0 ; i < 3 ; i++)
-  {
-    accelG[i] = (float) accelCount[i] / ((1<<12)/(2*GSCALE));  // get actual g value, this depends on scale being set
-  }
-  
     //Prints the time in ms since the program started running.
     Serial.println("TIME");
     Serial.println(millis());
@@ -56,12 +68,37 @@ void loop()
       oldValues[i] = values[i];
     }
     
+ for(int n = 0; n<2; n++){
+   
+   
+    int z;
+    z = 1<<n; 
+    Wire.beginTransmission(shieldAddr); 
+    Wire.write(z); 
+    Wire.endTransmission(); 
+    
+    int accelCount[3];  // Stores the 12-bit signed value -accelerometer
+    readAccelData(accelCount);  // Read the x/y/z adc values -accelerometer
+
+  // Now we'll calculate the accleration value into actual g's
+  float accelG[3];  // Stores the real accel value in g's
+  for (int i = 0 ; i < 3 ; i++)
+  {
+    accelG[i] = (float) accelCount[i] / ((1<<12)/(2*GSCALE));  // get actual g value, this depends on scale being set
+  }
+  
+    
     for (int i = 0 ; i < 3 ; i++)   //print accelerometer values
   {
     Serial.print(accelG[i], 4);  // Print g values
     Serial.print("\t");  // tabs in between axes
+    
   }
+  Serial.print(n); 
   Serial.println();
+  
+  }
+
     
     // wait for a bit to not overload the port
     delay(100);
