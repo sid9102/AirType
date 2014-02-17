@@ -115,7 +115,7 @@ public class SerialReader implements SerialPortEventListener
     public static void main(String[] args) throws Exception {
         SerialReader main = new SerialReader();
         main.initialize();
-        sensorData = new ConcurrentHashMap<Double, new testData(null)>();
+        sensorData = new ConcurrentHashMap<Double, prediction.test.Data>();
         Thread t=new Thread() {
             public void run() {
                 //the following line will keep this app alive for 1000    seconds,
@@ -141,6 +141,7 @@ public class SerialReader implements SerialPortEventListener
         }
         public double getValue(){
 
+            return 0;
         }
     }
 }
