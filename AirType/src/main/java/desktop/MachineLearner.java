@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -16,7 +17,7 @@ import java.util.StringTokenizer;
 public class MachineLearner
 {
     public static void main(String[] args) throws IOException {
-        File data = new File("exaggeratedhello.txt");
+        File data = new File("out.txt");
         Scanner in = new Scanner(data);
 
         ArrayList<String> lines = new ArrayList<String>();
@@ -27,9 +28,10 @@ public class MachineLearner
             lines.add(curLine);
         }
         in.close();
-        File calibration = new File("exaggerated.txt");
-        int[] thresholds = getThresholds(calibration);
-        System.out.println("Got thresholds: " + Arrays.toString(thresholds));
+        File calibration = new File("training.txt");
+        getThresholds(calibration);
+        //System.out.println("Got thresholds: " + Arrays.toString(thresholds));
+        int[] thresholds = {81, 99, 29, 56, 37, 62, 62, 98};
         int[] curRun = new int[8];
         int[] lastRun = new int[8];
         boolean firstLine = true;
@@ -75,9 +77,10 @@ public class MachineLearner
         }
     }
 
-    private static int[] getThresholds(File calibration) throws FileNotFoundException
+    private static void getThresholds(File calibration) throws FileNotFoundException
     {
         Scanner in = new Scanner(calibration);
+        Random rand = new Random();
         ArrayList<String> lines = new ArrayList<String>();
         boolean printDiffs = false;
         while(in.hasNextLine())
@@ -88,20 +91,25 @@ public class MachineLearner
         in.close();
         int[] curRun = new int[8];
         int[] lastRun = new int[8];
-        int[] thresholds = {5, 26, 25, 10, 21, 5, 9, 6};
+        int[] thresholds = new int[8];
         int curButton;
-        boolean threshholdChanged = true;
-        while(threshholdChanged)
+        int successfulRuns;
+        int loop = 0;
+        int maxSuccesses = 0;
+        while(true)
         {
-            threshholdChanged = false;
+            loop++;
+            successfulRuns = 0;
             boolean firstLine = true;
             curButton = 8;
-            runLoop:
+            boolean failed = false;
             for(String curLine : lines)
             {
                 curLine = curLine.replace("\r", "").replace("\n", "");
                 if(!curLine.equals("RUN"))
                 {
+                    if(failed)
+                       continue;
                     StringTokenizer tokenizer = new StringTokenizer(curLine,":");
                     int i = 0;
                     while(tokenizer.hasMoreTokens())
@@ -117,7 +125,7 @@ public class MachineLearner
                     else
                     {
                         int[] diffs = new int[8];
-                        for(i = 0; i < 8; i++)
+                        for(i = 0; i < 8 && !failed; i++)
                         {
                             diffs[i] = curRun[i] - lastRun[i];
                             lastRun[i] = curRun[i];
@@ -126,12 +134,13 @@ public class MachineLearner
                             if(diffs[i] > thresholds[i])
                             {
                                 curButton--;
-                                System.out.println("curButton is now " + Integer.toString(curButton));
+                                //System.out.println("curButton is now " + Integer.toString(curButton));
                                 if(i != curButton)
                                 {
+                                    //System.out.println("Found " + Integer.toString(i) + " instead");
+                                    //System.out.println("Diff: " + Integer.toString(diffs[i]) + ", Thresh: " + Integer.toString(thresholds[i]));
                                     thresholds[i]++;
-                                    threshholdChanged = true;
-                                    break runLoop;
+                                    failed = true;
                                 }
                             }
                         }
@@ -141,12 +150,25 @@ public class MachineLearner
                 }
                 else
                 {
-                    System.out.println(curLine);
+                    //System.out.println(curLine + Integer.toString(loop));
                     firstLine = true;
+                    if(!failed)
+                        successfulRuns++;
+                    else
+                        failed = false;
                     curButton = 8;
                 }
             }
+            if(successfulRuns > maxSuccesses)
+            {
+                System.out.println("Got " + successfulRuns + " correct runs, thresholds are now: " + Arrays.toString(thresholds));
+                maxSuccesses = successfulRuns;
+            }
+            for(int i = 0; i < 8; i++)
+            {
+                thresholds[i] = rand.nextInt(100);
+            }
         }
-        return thresholds;
+        //return thresholds;
     }
 }
