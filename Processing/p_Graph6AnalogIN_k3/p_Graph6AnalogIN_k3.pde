@@ -31,7 +31,7 @@ Serial port1;
 
 //Set your serial port here (look at list printed when you run the application once)
 String V3 = Serial.list()[0];
-String portname1 = "COM22";
+String portname1 = "COM24";
 int baudrate = 9600;
   
 int prefix = 1;
