@@ -35,7 +35,7 @@ void loop()
 {
     long start = millis();
     // For synchronisation between the arduino and the computer
-    while(startTime.length() < 2){
+    while(startTime.length() < 4){
       while (Serial.available()) {
         delay(3);  //delay to allow buffer to fill 
         if (Serial.available() >0) {
@@ -44,17 +44,18 @@ void loop()
         } 
       }
     }
-    if(setStart && startTime.length() >= 2){
+    if(setStart && startTime.length() >= 4){
       arduinoStart = millis();
       setStart = false;
       time = startTime.toInt();
+      Serial.println(startTime);
     }
     values[0] =  cs_0.capacitiveSensor(resolution);
     values[1] =  cs_1.capacitiveSensor(resolution);
     values[2] =  cs_2.capacitiveSensor(resolution);
     values[3] =  cs_3.capacitiveSensor(resolution);
 
-    Serial.print(arduinoStart - millis() + time);        // check on performance in milliseconds
+    Serial.print(millis() - arduinoStart + time);        // check on performance in milliseconds
     
     Serial.print("\t");                    // tab character for debug window spacing
     Serial.print(values[0]);                  // print sensor output 1
