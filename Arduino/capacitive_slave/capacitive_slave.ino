@@ -8,7 +8,7 @@ CapacitiveSensor   cs_1_11 = CapacitiveSensor(A0,A11);        // 1 megohm resist
 CapacitiveSensor   cs_2_10 = CapacitiveSensor(A1,A10);        // 1 megohm resistor between pins A2 & A10, pin A2 is sensor pin, add wire, foil
 CapacitiveSensor   cs_3_9 = CapacitiveSensor(A2,A9);        // 1 megohm resistor between pins A3 & A9, pin A3 is sensor pin, add wire, foil
 CapacitiveSensor   cs_4_8 = CapacitiveSensor(A3,A8);        // 1 megohm resistor between pins A4 & A8, pin A4 is sensor pin, add wire, foil
-CapacitiveSensor   cs_5_7 = CapacitiveSensor(A4,A7);        // 1 megohm resistor between pins A5 & A7, pin A4 is sensor pin, add wire, foil
+//CapacitiveSensor   cs_5_7 = CapacitiveSensor(A4,A7);        // 1 megohm resistor between pins A5 & A7, pin A4 is sensor pin, add wire, foil
 long values[5];
 int breaker = 123;
 
@@ -29,7 +29,7 @@ void loop()
     values[1] =  cs_2_10.capacitiveSensor(30);
     values[2] =  cs_3_9.capacitiveSensor(30);
     values[3] =  cs_4_8.capacitiveSensor(30);
-    values[4] =  cs_5_7.capacitiveSensor(30);
+//    values[4] =  cs_5_7.capacitiveSensor(30);
    
     Serial.print("\t");                    // tab character for debug window spacing
     Serial.print(values[0]);                  // print sensor output 1
@@ -38,9 +38,9 @@ void loop()
     Serial.print("\t");
     Serial.print(values[2]);                // print sensor output 3
     Serial.print("\t");
-    Serial.print(values[3]);               //print sensor output 4
-    Serial.print("\t");
-    Serial.println(values[4]);               //print sensor output 4
+    Serial.println(values[3]);               //print sensor output 4
+//    Serial.print("\t");
+//    Serial.println(values[4]);               //print sensor output 4
 
     
     delay(50);
