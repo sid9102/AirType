@@ -115,7 +115,7 @@ public class AirTypeInitActivity extends Activity {
 
             publishProgress(25);
 
-            AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(), permutationMap);
+            AirTrie curTrie = TrieMaker.makeTrie(new FingerMap(false), permutationMap);
 
             publishProgress(50);
 

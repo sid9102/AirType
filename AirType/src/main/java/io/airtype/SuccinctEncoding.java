@@ -228,11 +228,19 @@ public class SuccinctEncoding
                 }
                 bit <<= 1;
             }
-            if(curLetter >= 27 || curLetter <= 0)
+            if(curLetter == 0)
+            {
+                char letter = '\'';
+                result += letter;
+            }
+            else if(curLetter >= 27 || curLetter < 0)
                 return result;
-            curLetter += 0x60;
-            char letter = (char) curLetter;
-            result += letter;
+            else
+            {
+                curLetter += 0x60;
+                char letter = (char) curLetter;
+                result += letter;
+            }
         }
         return result;
     }
