@@ -37,4 +37,5 @@ dependencies {
     compile files('libs/lucene-core-4.6.0.jar')
     compile files('libs/RXTXcomm.jar')
     compile files('src/main/java/co/sidhant/airtype/prediction/bullib.jar')
+    compile files('libs/py4j0.8.1.jar')
 }
