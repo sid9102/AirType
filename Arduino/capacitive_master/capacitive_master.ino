@@ -55,10 +55,10 @@ void loop()
     long start = millis();
     
    
-    values[0] =  cs_1_11.capacitiveSensor(30);
-    values[1] =  cs_2_10.capacitiveSensor(30);
-    values[2] =  cs_3_9.capacitiveSensor(30);
-    values[3] =  cs_4_8.capacitiveSensor(30);
+    values[0] =  cs_1_11.capacitiveSensor(50);
+    values[1] =  cs_2_10.capacitiveSensor(50);
+    values[2] =  cs_3_9.capacitiveSensor(50);
+    values[3] =  cs_4_8.capacitiveSensor(50);
 //    values[4] =  cs_5_7.capacitiveSensor(30);
     
     Serial.print(millis() - start);        // check on performance in milliseconds
