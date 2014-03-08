@@ -1,5 +1,6 @@
 package sprokit;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import libsvm.SelfOptimizingLinearLibSVM;
@@ -19,9 +20,9 @@ public class Identifier {
 	private LinkedList<String> classes;
 	
 	// instantiate with a newline separated list of stringified lists of training data, <true/false>, <true/false>
-	public Identifier(String datalist, String debug, String labelled){
-		this.debug = debug.equals("true");
-		init(datalist, labelled.equals("true"));
+	public Identifier(String datalist, boolean debug, boolean labelled){
+		this.debug = debug;
+		init(datalist, labelled);
 	}
 	
 	// pass a stringified list of unnormalized, unlabeled data, to get it's label
@@ -159,6 +160,15 @@ public class Identifier {
 	}
 	
 	// expects n stringified numerical values
+	private static Instance makeInstance(ArrayList<Integer> data){
+		double[] converted = new double[data.size()];
+		for(int index = 0; index < converted.length; index++){
+			converted[index] = (double)data.get(index);
+		}
+		return new DenseInstance(converted);
+	}
+	
+	// expects n stringified numerical values
 	private static Instance makeInstance(String line){
 		String[] sline = line.split(" ");
 		double[] converted = new double[sline.length];
@@ -168,7 +178,7 @@ public class Identifier {
 			}
 			catch(Exception x){
 				converted[index] = 0;
-				throw new IllegalArgumentException("String could not be cast to double");
+				throw new IllegalArgumentException(sline[index] + " could not be cast to double");
 			}
 		}
 		return new DenseInstance(converted);

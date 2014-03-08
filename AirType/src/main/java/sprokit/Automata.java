@@ -9,8 +9,8 @@ public class Automata {
 	private Aggregator<String> aggregator;
 	private Navigator<String,String> navigator;
 	
-	public Automata(String[] labels){
-		installDefaultAutomata(labels, true);
+	public Automata(String[] labels, boolean debug){
+		installDefaultAutomata(labels, debug);
 	}
 	
 	public void installDefaultAutomata(String[] labels, boolean debug){

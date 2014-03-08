@@ -19,18 +19,18 @@ public class Engine {
 	private Automata automata;
 	private Identifier identifier;
 	
-	public Engine(String f) throws IOException{
+	public Engine(String f, boolean di, boolean ai) throws IOException{
 		RandomAccessFile rf = new RandomAccessFile(new File(f), "r");
 		byte[] bytes = new byte[(int)rf.length()];
 		rf.read(bytes);
-		train(new String(bytes));
+		train(new String(bytes), di, ai);
 		rf.close();
 	}
 	
 	// expects datalist in the form "<label> <number> <number> \n <label> <number> <number> \n ....."
-	public void train(String datalist){
-		identifier = new Identifier(datalist,"true","true");
-		automata = new Automata(LABELS);
+	public void train(String datalist, boolean di, boolean ai){
+		identifier = new Identifier(datalist, di, true);
+		automata = new Automata(LABELS, ai);
 	}
 	
 	// expects data in the form "<number> <number> ....."
