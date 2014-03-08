@@ -71,7 +71,7 @@ public class PythonInterface
             } else
                 break;
         }
-
+        System.out.println(result);
         return result;
     }
 

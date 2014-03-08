@@ -209,17 +209,19 @@ public class SuccinctEncoding
 
 
 
-    // Get a word for a provided BitSet, encoded according to my character encoding scheme
+    // Decode a word from a provided BitSet, encoded according to my character encoding scheme
     public static String getWord(OpenBitSet word)
     {
         // The curWord may have trailing 0s, we need to make sure
         // to read until the end of the word,including trailing zeroes.
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for(int i = 1; i < word.length() + 1; i++)
         {
             int bit = 1;
             int curLetter = 0;
             int curStart = i * 5;
+
+            // 5 bits for character, read in the next char
             for(int j = curStart; j < curStart + 5; j++)
             {
                 if(word.get(j))
@@ -228,20 +230,25 @@ public class SuccinctEncoding
                 }
                 bit <<= 1;
             }
-            if(curLetter == 0)
+
+            // Found end of word, exit early
+            if (curLetter == 0x1b || curLetter == 0x1c){
+                return result.toString();
+            }
+            else if(curLetter == 0x1d)
             {
                 char letter = '\'';
-                result += letter;
+                result.append(letter);
             }
-            else if(curLetter >= 27 || curLetter < 0)
-                return result;
+            else if(curLetter >= 27 || curLetter <= 0)
+                return result.toString();
             else
             {
                 curLetter += 0x60;
                 char letter = (char) curLetter;
-                result += letter;
+                result.append(letter);
             }
         }
-        return result;
+        return result.toString();
     }
 }

@@ -196,7 +196,7 @@ public class EncodedTrie
 
     // Convert a node's word into a binary representation,
     // 0x01 through 0x1a represent a through z, delimited through the use of 0x1b to indicate the
-    // beginning of a word fragment and 0x1c to indicate the beginning of a full word, 0x00 is an apostrophe
+    // beginning of a word fragment and 0x1c to indicate the beginning of a full word, 0x1d is an apostrophe
     private void encodeNodeWord(AirTrieNode node)
     {
         int oldIndex = encodedWordsIndex;
@@ -216,16 +216,24 @@ public class EncodedTrie
         // Encode the letters one by one, 5 bits each
         for(int i = 0; i < curWord.length(); i++)
         {
-            int letter = curWord.charAt(i) - 'a' + 1;
-            if(letter == -57)
+
+            int letter = curWord.charAt(i);
+            if(letter == '\'')
             {
-                letter = 0;
+                System.out.println("found '");
+                letter = 0x1d;
             }
+            else {
+                // shift the char to the correct 0x01-0x1a representation
+                letter = letter - 'a' + 1;
+            }
+
             int bit = 1;
             for(int j = 0; j < 5; j++)
             {
-                if((letter & bit) != 0)
+                if((letter & bit) != 0) {
                     encodedWords.set(encodedWordsIndex);
+                }
                 encodedWordsIndex++;
                 bit <<= 1;
             }
