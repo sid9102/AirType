@@ -1,6 +1,6 @@
 import serial, pygame, random, sys, time
 from pygame.locals import *
-ser = serial.Serial('COM24', 9600)
+ser = serial.Serial('/dev/tty.usbmodem641', 9600)
 
 pygame.init()
 fpsClock = pygame.time.Clock()

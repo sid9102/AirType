@@ -26,6 +26,7 @@ public class PythonInterface
     private TreeMap<String, ArrayList<String>> permutationMap;
     private EncodedTrie mEncodedTrie;
     private Engine mEngine;
+    private ArrayList<String> mAlts;
 
     public PythonInterface() throws IOException{
         // Make the map
@@ -36,6 +37,7 @@ public class PythonInterface
             System.out.println(e.getMessage());
             System.exit(0);
         }
+        mAlts = new ArrayList<String>();
         permutationMap = new TreeMap<String, ArrayList<String>>(new AirTypeIME.stringLengthComparator());
         String curLine;
         String curKey = "";
@@ -75,6 +77,7 @@ public class PythonInterface
             } else
                 break;
         }
+        mAlts = mEncodedTrie.getAlts();
         System.out.println(result);
         return result;
     }
@@ -89,11 +92,11 @@ public class PythonInterface
     }
 
     public ArrayList<String> getAlts(){
-        return mEncodedTrie.getAlts();
+        return mAlts;
     }
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        GatewayServer gs = new GatewayServer(new PythonInterface(), 25346);
+        GatewayServer gs = new GatewayServer(new PythonInterface());
         gs.start();
     }
 }

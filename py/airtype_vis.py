@@ -4,70 +4,108 @@ import pygame
 import sys
 import serial
 import re
+import time
 
 def main():
-    gw = JavaGateway(GatewayClient(port=25346))
+    gw = JavaGateway()
     ser = serial.Serial('/dev/tty.usbmodem641')
 
-    size = width, height = 1920, 1200
+    size = width, height = 1920,1080
     pygame.init()
     screen = pygame.display.set_mode(size)
     back = 31, 44, 53
     text_color = 245, 236, 217
     font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 80)
+    cand_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 40)
 
     fingers = {'resting':'-1','leftIndex':'3','leftMiddle':'2','leftRing':'1',
             'leftPinky':'0', 'rightIndex':'4','rightMiddle':'5','rightRing':'6',
-            'rightPinky':'7'};
+            'rightPinky':'7', 'space':'8'};
+    fing_inv = {v:k for k, v in fingers.items()}
+
     for i in range(20):
         values = ser.readline() # <number> <number> ...
 
     wordFrag = []
 
-    paragraphText = ['word', 'list']
+    paragraphText = ''
+    altCombined = ''
+
+    oldvalues = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+    diffs = ()
+    start = int(round(time.time() * 1000))
+    alts = []
+    altIndex = 0
+    partialWord = ""
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 pygame.quit()
 
-        # Read AirType sensor data and display words
-        values = ser.readline()[:-3] # <number> <number> ...
-        print values
-        finger = gw.entry_point.classifyData(values)
-        print finger
-        if finger is None:
-            wordFrag.append(fingers['resting'])
-            finger = fingers['resting']
-        # if a space get the best word possible
-        elif finger is 'space':
-            digitWord = ''.join(wordFrag)
-            print gw.entry_point.getWord(digitWord)
-        elif finger is 'left':
-            print 'go left'
-        elif finger is 'right':
-            print 'go right'
+        values = tuple(ser.readline()[:-2].split(" "))
+        values = map(int, values[:-1])
+        millis = int(round(time.time() * 1000)) - start
+        if len(values) == 9:
+            diffs = ()
+            for x in range(9):
+                diffs += (int(values[x]) - oldvalues[x],)
+            oldvalues = values
 
-        # show candidates for the current word, have a way to cycle through
-        alts = gw.entry_point.getAlts()
+        finger = getFinger(diffs)
+
+        if finger is None:
+            finger = '-1'
+        # if a space get the best word possible
+        elif finger is '8': # space
+            # Cycle candidates
+            if len(wordFrag) == 0:
+                print alts
+                if altIndex < len(alts):
+                    paragraphText = alts[altIndex]
+                    altIndex += 1
+                if altIndex >= len(alts):
+                    altIndex = 0;
+            else:
+                # Get the best word
+                digitWord = ''.join(wordFrag)
+                paragraphText = gw.entry_point.getWord(digitWord)
+                print paragraphText;
+                wordFrag = []
+                alts = gw.entry_point.getAlts()
+                alts.append(paragraphText)
+                print alts
+        else:
+            wordFrag.append(finger)
+            digitWord = ''.join(wordFrag)
+            partialWord = gw.entry_point.getWord(digitWord)
+            alts = gw.entry_point.getAlts()
+            alts.insert(0, partialWord)
+            altCombined = ', '.join(alts)
+            print alts
+            print wordFrag
 
         # Update pygame screen
-        if finger is not None:
-            status = font.render(finger, True, text_color)
+        chosenWord = font.render(paragraphText, True, text_color)
+        candidates = cand_font.render(altCombined, True, text_color)
 
-            pt = ' '.join(paragraphText)
-            paragraph = font.render(str(pt), True, text_color)
+        screen.fill(back)
+        screen.blit(chosenWord, (-font.size(paragraphText)[0]/2 + 1920/2, 0))
+        screen.blit(candidates, (-cand_font.size(altCombined)[0]/2 + 1920/2, 100))
+        pygame.display.flip()
 
-            screen.fill(back)
-            screen.blit(status, (-font.size(finger)[0]/2 + 1920/2, 0))
-            screen.blit(paragraph, (-font.size(pt)[0]/2 + 1920/2, 100))
-            pygame.display.flip()
 
-def pint(val):
-    try:
-        return int(val)
-    except ValueError:
-        pass
+def getFinger(val):
+    max_value = max(val)
+    if val[8] > 500:
+        return '8' 
+    if max_value > 2000:
+        ind = val.index(max_value)
+        for i in val:
+           if i is not ind and val.index(i) > 5000:
+                return None
+        return str(ind)
+    return None
 
 
 if __name__ == "__main__":
