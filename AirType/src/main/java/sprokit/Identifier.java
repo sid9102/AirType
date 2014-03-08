@@ -39,6 +39,19 @@ public class Identifier {
 		return classification;
 	}
 	
+	public Object identify(ArrayList<Integer> data){
+		Instance i = makeInstance(data);
+		normalizer.filter(i);
+		String classification = (String) classifier.classify(i);
+		
+		if(debug){
+			System.out.println("DEBUG: Identifier.identify");
+			System.out.println("       -> " + classification);
+		}
+		
+		return classification;
+	}
+	
 	private void init(String datalist, boolean isLabelled){
 		Dataset labelled;
 		

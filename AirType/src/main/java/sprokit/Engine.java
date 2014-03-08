@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Engine {
@@ -34,7 +35,7 @@ public class Engine {
 	}
 	
 	// expects data in the form "<number> <number> ....."
-	public String send(String data){
+	public String send(ArrayList<Integer> data){
 		String classification = (String) identifier.identify(data);
 		return automata.cycle(classification);
 	}
