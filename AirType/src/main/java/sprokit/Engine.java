@@ -40,6 +40,11 @@ public class Engine {
 		return automata.cycle(classification);
 	}
 	
+	public String send(String data){
+		String classification = (String) identifier.identify(data);
+		return automata.cycle(classification);
+	}
+	
 	public static Object deserialize(File f) throws Exception{
 		FileInputStream fi = new FileInputStream(f);
 		ObjectInputStream oi = new ObjectInputStream(fi);
@@ -56,7 +61,7 @@ public class Engine {
 	}
 	
 	public static void main(String[] args) throws Exception{
-		Engine e = new Engine(args[0]);
+		Engine e = new Engine(args[0], true, true);
 		
 		Scanner ui = new Scanner(System.in);
 		while(ui.hasNext()){
