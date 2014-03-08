@@ -10,6 +10,10 @@ public class Aggregator<Output> {
 		debug = d;
 	}
 	
+	public void reset(){
+		output = new LinkedList<Output>();
+	}
+	
 	public synchronized void append(Output o){
 		if(debug){
 			System.out.println("Aggregator output debug: appending");

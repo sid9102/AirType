@@ -6,17 +6,23 @@ public class Navigator<Output, Input>{
 	private HashMap<String, State<Output, Input>> states;
 	private LinkedList<State<Output, Input>> locations;
 	private Aggregator<Output> aggregator;
+	private String start;
 	private boolean debug;
 	
 	public Navigator(Aggregator<Output> a, boolean d){
 		states = new HashMap<String, State<Output, Input>>();
 		locations = new LinkedList<State<Output, Input>>();
 		aggregator = a;
-		debug = d;
 	}
 	
 	public void setStartState(String s){
-		locations.add(states.get(s));
+		start = s;
+		locations.add(states.get(start));
+	}
+	
+	public void reset(){
+		locations = new LinkedList<State<Output, Input>>();
+		locations.add(states.get(start));
 	}
 	
 	public void addState(String s){

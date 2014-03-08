@@ -10,7 +10,7 @@ public class Automata {
 	private Navigator<String,String> navigator;
 	
 	public Automata(String[] labels){
-		installDefaultAutomata(labels, false);
+		installDefaultAutomata(labels, true);
 	}
 	
 	public void installDefaultAutomata(String[] labels, boolean debug){
@@ -40,17 +40,22 @@ public class Automata {
 		for(String from: states){
 			for(String to: states){
 				if(!from.equals(to)){
-					if(!to.equals(nothing)){
-						navigator.addPath(from, to, to, to);
+					if(to.equals(nothing)){
+						navigator.addPath(from, to, "", to);
 					}
 					else{
-						navigator.addPath(from, to, "", to);
+						navigator.addPath(from, to, to, to);
 					}
 				}
 			}
 		}
 		
 		navigator.setStartState(nothing);
+	}
+	
+	public void reset(){
+		navigator.reset();
+		aggregator.reset();
 	}
 	
 	public String cycle(String input){		

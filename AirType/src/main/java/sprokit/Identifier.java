@@ -1,6 +1,7 @@
 package sprokit;
 
 import java.util.LinkedList;
+
 import libsvm.SelfOptimizingLinearLibSVM;
 import net.sf.javaml.classification.Classifier;
 import net.sf.javaml.clustering.Clusterer;
@@ -27,7 +28,14 @@ public class Identifier {
 	public Object identify(String data){
 		Instance i = makeInstance(data);
 		normalizer.filter(i);
-		return classifier.classify(i);
+		String classification = (String) classifier.classify(i);
+		
+		if(debug){
+			System.out.println("DEBUG: Identifier.identify");
+			System.out.println("       -> " + classification);
+		}
+		
+		return classification;
 	}
 	
 	private void init(String datalist, boolean isLabelled){
@@ -172,7 +180,7 @@ public class Identifier {
 		double[] converted = new double[sline.length-1];
 		for(int index = 1; index < sline.length; index++){
 			try{
-				converted[index] = Double.parseDouble(sline[index]);
+				converted[index-1] = Double.parseDouble(sline[index]);
 			}
 			catch(Exception x){
 				converted[index] = 0;
