@@ -8,14 +8,17 @@ from sklearn.cluster import AffinityPropagation
 
 def main():
 
-
     # Set up serial connection
     ser = serial.Serial('/dev/tty.usbmodem641')
-    print ser.name
     ser.write('a')
 
     # skip shit data
-    ser.readline()
+    for i in range(20):
+        ser.readline()
+        ser.readline()
+        ser.readline()
+        ser.readline()
+        ser.readline()
     X = []
 
     count = 0

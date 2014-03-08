@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="bullib">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/AirType/src/main/java/co/sidhant/airtype/prediction/bullib.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
