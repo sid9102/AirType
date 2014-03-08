@@ -16,10 +16,10 @@ struct RECEIVE_DATA_STRUCTURE{
 RECEIVE_DATA_STRUCTURE mydata;
 
 void setup() {
-   //cs_0_11.set_CS_AutocaL_Millis(0xFFFFFFFF);     // turn off autocalibrate on channel 1 - just as an example
-//   cs_1_10.set_CS_AutocaL_Millis(0xFFFFFFFF);
-//   cs_2_9.set_CS_AutocaL_Millis(0xFFFFFFFF);
-//   cs_3_8.set_CS_AutocaL_Millis(0xFFFFFFFF);
+   cs_0_11.set_CS_AutocaL_Millis(0xFFFFFFFF);     // turn off autocalibrate on channel 1 - just as an example
+   cs_1_10.set_CS_AutocaL_Millis(0xFFFFFFFF);
+   cs_2_9.set_CS_AutocaL_Millis(0xFFFFFFFF);
+   cs_3_8.set_CS_AutocaL_Millis(0xFFFFFFFF);
    Serial.begin(9600);
    Serial1.begin(9600);
    ET.begin(details(mydata), &Serial1);

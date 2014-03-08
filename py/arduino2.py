@@ -10,7 +10,7 @@ start = int(round(time.time() * 1000))
 
 
 def scale(x):
-    return x // 7
+    return x //7
 
 rectangles = [pygame.Rect(0, 0, 100, 100), pygame.Rect(0, 100, 100, 100), pygame.Rect(0, 200, 100, 100), pygame.Rect(0, 300, 100, 100), pygame.Rect(0, 400, 100, 100), pygame.Rect(0, 500, 100, 100), pygame.Rect(0, 600, 100, 100), pygame.Rect(0, 700, 100, 100), ]
 
@@ -24,16 +24,24 @@ values = []
 time.sleep(1)
 millis = int(round(time.time() * 1000)) - start
 ser.write(str(millis))
+oldvalues = (0, 0, 0, 0, 0, 0, 0, 0)
+diffs = ()
 while True:
-    values = ser.readline()[:-2].split(" ")
+    values = tuple(ser.readline()[:-2].split(" "))
+    values = map(int, values[:-1])
     millis = int(round(time.time() * 1000)) - start
-    print(values)
     windowSurface.fill(pygame.Color(255, 255, 255, 255))
-    if len(values) == 9:
+    if len(values) == 8:
+        diffs = ()
         for x in range(8):
-            rectangles[x].width = scale(int(values[x]))
+            diffs += (int(values[x]) - oldvalues[x],)
+        oldvalues = values
+        disp = diffs
+        print(disp)
+        for x in range(8):
+            rectangles[x].width = scale(int(disp[x]))
             windowSurface.fill(colors[x], rectangles[x])
-            textSurface = fontObj.render(values[x], False, pygame.Color("white"))
+            textSurface = fontObj.render(str(disp[x]), False, pygame.Color("white"))
             textRect = textSurface.get_rect()
             textRect.topleft = rectangles[x].topleft
             windowSurface.blit(textSurface, textRect)
