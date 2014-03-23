@@ -36,7 +36,7 @@ def main():
     X = np.array(X)    
 
     # compute affinity propagation
-    af = AffinityPropagation(damping=.7, convergence_iter=50, max_iter=1000, verbose=True).fit(X)
+    af = AffinityPropagation(damping=.7, convergence_iter=300, max_iter=10000, verbose=True).fit(X)
     cluster_centers_indices = af.cluster_centers_indices_
     labels = af.labels_
 

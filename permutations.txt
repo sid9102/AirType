@@ -50,6 +50,8 @@ go
 ha
 ya
 ma
+1644583:
+airtype
 52:
 us
 53:

@@ -8,15 +8,15 @@ import time
 
 def main():
     gw = JavaGateway()
-    ser = serial.Serial('/dev/tty.usbmodem641')
+    ser = serial.Serial('/dev/tty.usbmodem621')
 
     size = width, height = 1920,1080
     pygame.init()
     screen = pygame.display.set_mode(size)
     back = 31, 44, 53
     text_color = 245, 236, 217
-    font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 80)
-    cand_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 40)
+    font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 150)
+    cand_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 80)
 
     fingers = {'resting':'-1','leftIndex':'3','leftMiddle':'2','leftRing':'1',
             'leftPinky':'0', 'rightIndex':'4','rightMiddle':'5','rightRing':'6',
@@ -90,8 +90,8 @@ def main():
         candidates = cand_font.render(altCombined, True, text_color)
 
         screen.fill(back)
-        screen.blit(chosenWord, (-font.size(paragraphText)[0]/2 + 1920/2, 0))
-        screen.blit(candidates, (-cand_font.size(altCombined)[0]/2 + 1920/2, 100))
+        screen.blit(chosenWord, (-font.size(paragraphText)[0]/2 + 1920/2, 1080/2 -150))
+        screen.blit(candidates, (-cand_font.size(altCombined)[0]/2 + 1920/2, 1080/2 +100))
         pygame.display.flip()
 
 
@@ -99,10 +99,10 @@ def getFinger(val):
     max_value = max(val)
     if val[8] > 500:
         return '8' 
-    if max_value > 2000:
+    if max_value > 1000:
         ind = val.index(max_value)
         for i in val:
-           if i is not ind and val.index(i) > 5000:
+           if i is not ind and val.index(i) > 1000:
                 return None
         return str(ind)
     return None
