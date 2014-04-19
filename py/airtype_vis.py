@@ -15,9 +15,11 @@ def main():
         print "No connection to the device could be established"
         sys.exit(0);
         
+
     size = width, height = 1920,1080
     pygame.init()
     screen = pygame.display.set_mode(size)
+    pygame.display.set_icon(pygame.image.load('res/icon32.png').convert_alpha())
 
     # colors
     back = 31, 44, 53
@@ -47,7 +49,7 @@ def main():
     partialWord = ""
     done_pressing = True
 
-    tr = Trainer("the quick' brown fox jumped over the lazy-dog")
+    tr = Trainer("the quick' brown fox jumped over the lazy-dogs")
 
     pygame.event.set_allowed((pygame.QUIT, pygame.KEYDOWN))
 
@@ -82,7 +84,6 @@ def main():
             pygame.display.flip()
 
         elif tr.mode is 'generate':
-            print 'generating...'
             tr.generatePermutations()
 
         else:
@@ -144,6 +145,9 @@ class Trainer():
         self.offsets = None
         self.pressThresh = 25 
 
+        # Used for generating permutations
+        self.freq_dict = {}
+
     def handleKeypress(self, data):
         """ Determine if any finger was pressed given the data, if so prevent
         further keypresses until user returns to normal position, return the
@@ -203,27 +207,31 @@ class Trainer():
         else:
             self.offsets = [x/10 for x in self.tareValues]
             print 'average',self.tareValues
-            self.mode = 'generate'
-            # TODO: skip for now self.mode = 'train'
+            self.mode = 'generate' # TODO
+            #self.mode = 'train'
 
     def generatePermutations(self):
         # take all words from a dictionary and generate their 'word #'
         # use the word number as a key, and a word list as the values
         # sort the values based on frequency
 
+        temp = {0: set(['s', 'g', 'o']), 1: set(['a', 'e', 'd', '-', 'm', 'l', 'o', 'p', 'r', 'v', 'y', 'z']), 2: set(['b', "'", 'f', 'j', 'o', 'n', 'r', 'u', 'w', 'x']), 3: set(['c', 'e', 'i', 'h', 'k', 'q', 'u', 't'])}
         # Reverse the mapping
-        self.mapping = {0: set(['x', 'j', 'o', 'f']), 1: set(['r', 'w', 'o',
-            'n']), 2: set(['i', 'c', 'b', 's', 'k', "'"]), 3: set(['q', 'h', 'u',
-                'e', 't']), 4: set(['d', 'm', 'u', 'e', 'p']), 5: set(['r', 'e',
-                    't', 'o', 'v']), 6: set(['a', 'e', 'd', 'g', 'h', '-', 'l',
-                        'o', 'y', 'z'])};
-        inv_mapping = dict( (v,k) for k in self.mapping for v in self.mapping[k] )
+        inv_mapping = dict( (v,k) for k in temp for v in temp[k] )
+        #inv_mapping = dict( (v,k) for k in self.mapping for v in self.mapping[k] )
 
-        # Get frequencies of words
+
+        # Get frequencies of words, store as a dictionary
         freq = open('freqList.csv', 'r')
-
+        for line in freq.readlines():
+            parts = line.strip().split(',')
+            word = parts[2].lower()
+            frequency = parts[3]
+            self.freq_dict[word] = frequency
         freq.close()
-
+        
+        permutations = {}
+        # Open the dictionary of words
         f = open('6of12.txt', 'r')
         for line in f.readlines():
             line = line.lower()
@@ -236,17 +244,37 @@ class Trainer():
                 for letter in line:
                    result += str(inv_mapping[letter])
 
-                print line, '->', result
-
-
-                
-                
-                
-
-            ## : &  # <  ^ = +
-            # if it ends in an equals, remove the equals
-
+                # Put the numberword as a key, and a list of words it can
+                # represent as the value (sorted by frequency)
+                result = int(result)
+                if result in permutations:
+                    # Values exist for this key already, so do an insertion sort
+                    # based on frequency
+                    permutations[result].append(line)
+                    try:
+                        permutations[result] = sorted(permutations[result], key=lambda k: self.freq_dict[k])
+                    except KeyError:
+                        pass
+                else:
+                    # Empty, just add as a list
+                    permutations[result] = [line]
         f.close()
+
+        # Now store the permutation dict in a file
+        f = open('permutations.txt', 'wb') 
+        for numberword, words in sorted(permutations.items()):
+            f.write(str(numberword)+':\n')
+            for word in words:
+                f.write(word+'\n')
+        f.close()
+
+        self.mode = 'pygame'
+        
+
+    # Key function used for sorting a list of words based on frequency
+    def freqKey(self, val):
+        return self.freq_dict[val]
+
 
 
 if __name__ == "__main__":
