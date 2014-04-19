@@ -45,7 +45,6 @@ def main():
     alts = []
     altIndex = 0
     partialWord = ""
-    state = 'train'
     done_pressing = True
 
     tr = Trainer("the quick brown fox jumped over the lazy dog")
@@ -59,8 +58,16 @@ def main():
 
         values = tuple(ser.readline().split("\t"))
         values = map(int, values)
+        if tr.mode is 'ready':
+            for event in pygame.event.get():
+                if event.type == pygame.KEYUP: 
+                    tr.mode = 'tare'
+        elif tr.mode is 'tare':
+            # Get the average of 10 values, set this as the base
+            print values
+            tr.tareDevice(values)
     
-        if tr.active:
+        elif tr.mode is 'train':
             # Update the index of what character we are mapping to a finger
             tr.trainValues(values)
 
@@ -128,16 +135,23 @@ class Trainer():
         self.train_idx = 0
         self.training_text = training_text
         self.mapping = {}
-        self.active = True
+        self.mode = 'ready'
+        self.tareThresh = 10
+        self.tareValues = None
+        self.offsets = None
+        self.pressThresh = 25 
 
     def handleKeypress(self, data):
         """ Determine if any finger was pressed given the data, if so prevent
         further keypresses until user returns to normal position, return the
         finger that was pressed """
 
-        max_value = max(data)
+        data = [i - j for i, j in zip(data, self.offsets)]
+        print data
+
+        max_value= max(data)
         fingerPressed = None
-        if max_value > 300:
+        if max_value > self.pressThresh:
             ind = data.index(max_value)
             fingerPressed = ind
 
@@ -158,7 +172,7 @@ class Trainer():
         if finger_idx >= 0:
             # Check bounds
             if self.train_idx >= len(self.training_text):
-                self.active = False
+                self.mode = 'generate'
                 return 
             # Skip spaces TODO: this won't handle consecutive spaces
             if self.training_text[self.train_idx] is ' ':
@@ -173,7 +187,25 @@ class Trainer():
             print self.mapping
 
             # increment the index
-            self.train_idx+=1
+            self.train_idx += 1
+
+    def tareDevice(self, data):
+        if self.tareThresh > 0:
+            if self.tareValues is None:
+                self.tareValues = data
+            else:
+                self.tareValues = map(sum, zip(self.tareValues, data))
+
+            print self.tareValues
+            self.tareThresh -= 1
+
+        else:
+            self.offsets = [x/10 for x in self.tareValues]
+            print 'average',self.tareValues
+            self.mode = 'train'
+
+
+
 
 if __name__ == "__main__":
     main()
