@@ -10,7 +10,7 @@ import time
 def main():
     gw = JavaGateway()
     try:
-        ser = serial.Serial('/dev/tty.usbmodem621')
+        ser = serial.Serial('/dev/tty.usbmodem641')
     except OSError:
         print "No connection to the device could be established"
         sys.exit(0);
@@ -47,7 +47,7 @@ def main():
     partialWord = ""
     done_pressing = True
 
-    tr = Trainer("the quick brown fox jumped over the lazy dog")
+    tr = Trainer("the quick' brown fox jumped over the lazy-dog")
 
     pygame.event.set_allowed((pygame.QUIT, pygame.KEYDOWN))
 
@@ -64,7 +64,6 @@ def main():
                     tr.mode = 'tare'
         elif tr.mode is 'tare':
             # Get the average of 10 values, set this as the base
-            print values
             tr.tareDevice(values)
     
         elif tr.mode is 'train':
@@ -151,7 +150,6 @@ class Trainer():
         finger that was pressed """
 
         data = [i - j for i, j in zip(data, self.offsets)]
-        print data
 
         max_value= max(data)
         fingerPressed = None
@@ -200,33 +198,55 @@ class Trainer():
             else:
                 self.tareValues = map(sum, zip(self.tareValues, data))
 
-            print self.tareValues
             self.tareThresh -= 1
 
         else:
             self.offsets = [x/10 for x in self.tareValues]
             print 'average',self.tareValues
-            self.mode = 'train'
+            self.mode = 'generate'
+            # TODO: skip for now self.mode = 'train'
 
     def generatePermutations(self):
         # take all words from a dictionary and generate their 'word #'
         # use the word number as a key, and a word list as the values
         # sort the values based on frequency
 
-        f = open('2of12.txt', 'r')
+        # Reverse the mapping
+        self.mapping = {0: set(['x', 'j', 'o', 'f']), 1: set(['r', 'w', 'o',
+            'n']), 2: set(['i', 'c', 'b', 's', 'k', "'"]), 3: set(['q', 'h', 'u',
+                'e', 't']), 4: set(['d', 'm', 'u', 'e', 'p']), 5: set(['r', 'e',
+                    't', 'o', 'v']), 6: set(['a', 'e', 'd', 'g', 'h', '-', 'l',
+                        'o', 'y', 'z'])};
+        inv_mapping = dict( (v,k) for k in self.mapping for v in self.mapping[k] )
 
+        # Get frequencies of words
+        freq = open('freqList.csv', 'r')
+
+        freq.close()
+
+        f = open('6of12.txt', 'r')
         for line in f.readlines():
-            print 'hi'
+            line = line.lower()
+            line = line.strip()
+            if line[-1] == '=':
+                line = line[:-1]
+            if re.search(r"[^A-Za-z\'-]", line) is None:
+                # Generate a numberword
+                result = str()
+                for letter in line:
+                   result += str(inv_mapping[letter])
 
+                print line, '->', result
+
+
+                
+                
+                
+
+            ## : &  # <  ^ = +
+            # if it ends in an equals, remove the equals
 
         f.close()
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
