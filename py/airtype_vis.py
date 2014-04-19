@@ -82,6 +82,10 @@ def main():
                 train_font.size(tr.training_text[0:tr.train_idx])[0], 1080/2 +100))
             pygame.display.flip()
 
+        elif tr.mode is 'generate':
+            print 'generating...'
+            tr.generatePermutations()
+
         else:
             finger = tr.handleKeypress(values)
             print finger
@@ -203,6 +207,24 @@ class Trainer():
             self.offsets = [x/10 for x in self.tareValues]
             print 'average',self.tareValues
             self.mode = 'train'
+
+    def generatePermutations(self):
+        # take all words from a dictionary and generate their 'word #'
+        # use the word number as a key, and a word list as the values
+        # sort the values based on frequency
+
+        f = open('2of12.txt', 'r')
+
+        for line in f.readlines():
+            print 'hi'
+
+
+        f.close()
+
+
+
+
+
 
 
 
