@@ -28,9 +28,9 @@ public class NextWord{
 	}
 	
 	// adds a link from your current location to word
-	public void place(String word) throws Exception{
+	public void place(String word, double frequency) throws Exception{
 		// throws if the network is unable to resolve the weight, this is unlikely to impossible
-		cursor.place(word, 1.0);
+		cursor.place(word, frequency);
 	}
 	
 	// moves to picked word
@@ -60,8 +60,8 @@ public class NextWord{
 	
 	// trains the network on a large body of text
 	public void train(File f) throws Exception{
-		Pattern sentenceDelimiter = Pattern.compile("[.!?;:]");
-		Pattern wordDelimiter = Pattern.compile("[-_,\\s\"()]|(\\s')|('\\s)");
+		Pattern sentenceDelimiter = Pattern.compile("\n");
+		Pattern wordDelimiter = Pattern.compile("(\\s)+");
 		
 		Scanner sentences = new Scanner(Utility.load(f));
 		sentences.useDelimiter(sentenceDelimiter);
@@ -70,12 +70,12 @@ public class NextWord{
 			words = new Scanner(sentences.next());
 			words.useDelimiter(wordDelimiter);
 			cursor.reset();
-			while(words.hasNext()){
-				String word = words.next();
-				if(word.length() > 0){
-					cursor.placeAndMove(word.toLowerCase(), 1.0);
-				}
-			}
+			String from = words.next();
+			double value = Double.parseDouble(words.next());
+			String to = words.next();
+			cursor.place(from,0.0);
+			cursor.move(from);
+			cursor.place(to,value);
 		}
 		
 		sentences.close();
