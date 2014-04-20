@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.List;
 
 public class Engine {
 	public static String[] LABELS = new String[]
@@ -20,27 +21,13 @@ public class Engine {
 	private Automata automata;
 	private Identifier identifier;
 	
-	public Engine(String f, boolean di, boolean ai) throws IOException{
-		RandomAccessFile rf = new RandomAccessFile(new File(f), "r");
-		byte[] bytes = new byte[(int)rf.length()];
-		rf.read(bytes);
-		train(new String(bytes), di, ai);
-		rf.close();
-	}
-	
 	// expects datalist in the form "<label> <number> <number> \n <label> <number> <number> \n ....."
-	public void train(String datalist, boolean di, boolean ai){
-		identifier = new Identifier(datalist, di, true);
+	public void train(List<List<Double>> data, boolean di, boolean ai){
 		automata = new Automata(LABELS, ai);
 	}
 	
 	// expects data in the form "<number> <number> ....."
-	public String send(ArrayList<Integer> data){
-		String classification = (String) identifier.identify(data);
-		return automata.cycle(classification);
-	}
-	
-	public String send(String data){
+	public String process(List<Double> data){
 		String classification = (String) identifier.identify(data);
 		return automata.cycle(classification);
 	}
@@ -58,16 +45,5 @@ public class Engine {
 		ObjectOutputStream oo = new ObjectOutputStream(fo);
 		oo.writeObject(t);
 		oo.close();
-	}
-	
-	public static void main(String[] args) throws Exception{
-		Engine e = new Engine(args[0], true, true);
-		
-		Scanner ui = new Scanner(System.in);
-		while(ui.hasNext()){
-			System.out.println(e.send(ui.nextLine()));
-		}
-		
-		ui.close();
 	}
 }

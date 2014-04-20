@@ -1,215 +1,166 @@
 package sprokit;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 
 import libsvm.SelfOptimizingLinearLibSVM;
 import net.sf.javaml.classification.Classifier;
 import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.SOM;
+import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.filter.normalize.NormalizeMidrange;
+import py4j.GatewayServer;
 
 public class Identifier {
 	private NormalizeMidrange normalizer;
-	private Classifier classifier;	
-	private boolean debug;
-	private LinkedList<String> classes;
+	private Classifier classifier;
+	private HashMap<String, double[]> guestureCounts;
+	private int clusterCount;
+	private int none_index;
+	private String none_classification = "None";
 	
-	// instantiate with a newline separated list of stringified lists of training data, <true/false>, <true/false>
-	public Identifier(String datalist, boolean debug, boolean labelled){
-		this.debug = debug;
-		init(datalist, labelled);
-	}
+	// active variables
+	private LinkedList<Integer> classificationStack;
+	private double[] classificationCounts;
 	
-	// pass a stringified list of unnormalized, unlabeled data, to get it's label
-	public Object identify(String data){
-		Instance i = makeInstance(data);
-		normalizer.filter(i);
-		String classification = (String) classifier.classify(i);
-		
-		if(debug){
-			System.out.println("DEBUG: Identifier.identify");
-			System.out.println("       -> " + classification);
+	public void build(int stackSize, int targetClusterCount, List<List<Double>> data){
+		// convert to dataset
+		Dataset ds = new DefaultDataset();
+		for(List<Double> d : data){
+			ds.add(makeInstance(d));
 		}
 		
-		return classification;
-	}
-	
-	public Object identify(ArrayList<Integer> data){
-		Instance i = makeInstance(data);
-		normalizer.filter(i);
-		String classification = (String) classifier.classify(i);
+		// build normalizer and normalize data
+		normalizer = new NormalizeMidrange();
+		normalizer.build(ds);
+		normalizer.filter(ds);
 		
-		if(debug){
-			System.out.println("DEBUG: Identifier.identify");
-			System.out.println("       -> " + classification);
+		// cluster data
+		Clusterer kmeans = new KMeans(targetClusterCount, 1000);
+		Dataset[] clusters =  kmeans.cluster(ds);
+		
+		// assign class values in interval [0-clusters.size())
+		int ci = 0;
+		Dataset lds = new DefaultDataset();
+		for(Dataset c : clusters){
+			for(Instance i : c){
+				i.setClassValue(new Integer(ci));
+				lds.add(i);
+			}
+			ci++;
 		}
 		
-		return classification;
+		// build classifier based on assigned class values
+		classifier = new SelfOptimizingLinearLibSVM();
+		classifier.buildClassifier(lds);
+		
+		// set up rolling window for meta-classification analysis
+		guestureCounts = new HashMap<String, double[]>();
+		clusterCount = clusters.length + 1;
+		classificationCounts = new double[clusterCount];
+		none_index = clusterCount - 1; // last index corresponds to no classification
+		classificationStack = new LinkedList<Integer>();
+		for(int index = 0; index < stackSize; index++){
+			classificationStack.addFirst(none_index);
+		}
 	}
 	
-	private void init(String datalist, boolean isLabelled){
-		Dataset labelled;
+	public void mapGuesture(String guesture, List<List<Double>> data){
+		double[] counts;
 		
-		if(debug){
-			System.out.println("DEBUG: identifier.init");
-			System.out.println("       * calling datalist parser");
-		}
-		
-		if(isLabelled){
-			labelled = standardParse(datalist);
+		if(guestureCounts.containsKey(guesture)){
+			counts = guestureCounts.get(guesture);
+			for(List<Double> datum : data){
+				int c = classify(datum);
+				counts[c] = counts[c] + (1.0 / (double)data.size());
+			}
+			for(int c = 0; c < counts.length; c++){
+				counts[c] /= 2;
+			}
 		}
 		else{
-			labelled = clusterParse(datalist);
-		}
-		
-		if(debug){
-			System.out.println("       * exited datalist parser");
-			System.out.println("       -> building classifier");
-		}
-		
-		// build classifier
-		classifier = new SelfOptimizingLinearLibSVM();
-		classifier.buildClassifier(labelled);
-		
-		if(debug){
-			System.out.println("       done");
+			counts = new double[clusterCount];
+			guestureCounts.put(guesture,counts);
+			for(int c = 0; c < clusterCount; c++){
+				counts[c] = 0.0;
+			}
+			for(List<Double> datum : data){
+				counts[classify(datum)] =  1.0 / (double)data.size();
+			}
 		}
 	}
 	
-	private Dataset clusterParse(String datalist){
-		if(debug){
-			System.out.println("       -> reading data");
+	public int classify(List<Double> data){
+		Instance i = makeInstance(data);
+		normalizer.filter(i);
+		Object c = classifier.classify(i);
+		if(c instanceof String && ((String)c).equals(none_classification)){
+			return none_index;
 		}
-		
-		// read in data, convert into dataset
-		Dataset cdata = new DefaultDataset();
-		for(String l : datalist.split(System.getProperty("line.separator"))){
-			cdata.add(makeInstance(l));
-		}
-		
-		if(debug){
-			System.out.println("       -> building normalizer");
-		}
-		
-		// build the normalizer
-		normalizer = new NormalizeMidrange();
-		normalizer.build(cdata);
-		
-		if(debug){
-			System.out.println("       -> normalizing data");
-		}
-		
-		// normalize the data
-		normalizer.filter(cdata);
-		
-		if(debug){
-			System.out.println("       -> clustering data");
-		}
-		
-		// cluster the data
-		Clusterer clusterer = new SOM();
-		Dataset[] clustered = clusterer.cluster(cdata);
-		
-		if(debug){
-			System.out.println("           -> clusters found: " + clustered.length);
-			System.out.println("       -> labeling the data");
-		}
-		
-		// labelling data
-		classes = new LinkedList<String>();
-		Dataset labelled = new DefaultDataset();
-		int c = 0;
-		for(Dataset d : clustered){
-			classes.add("class:"+c);
-			for(Instance i : d){
-				i.setClassValue(classes.getLast());
-				labelled.add(i);
-			}
-			c++;
-		}
-		
-		if(debug){
-			System.out.println("           -> classes instantiated: ");
-			for(String cl : classes){
-				System.out.println("               '" + cl + "'");
-			}
-		}
-		
-		return labelled;
+		return (int) c;
 	}
 	
-	private Dataset standardParse(String datalist){
-		if(debug){
-			System.out.println("       -> reading data");
+	public String identify(List<Double> data){
+		record(classify(data));
+		return identify();
+	}
+	
+	public String identify(){
+		String guesture = "None";
+		double gdist = Double.MAX_VALUE;
+		for(String pg : guestureCounts.keySet()){
+			double pgdist = distance(guestureCounts.get(pg));
+			if(pgdist <= gdist){
+				gdist = pgdist;
+				guesture = pg;
+			}
+			System.out.println("      " + pg + " : " + pgdist);
 		}
-		
-		// read in data, convert into dataset
-		Dataset cdata = new DefaultDataset();
-		for(String l : datalist.split(System.getProperty("line.separator"))){
-			cdata.add(makeTrainingInstance(l));
+		return guesture;
+	}
+	
+	private void record(int c){
+		classificationStack.addLast(c);
+		classificationCounts[c] += 1.0;
+		classificationCounts[classificationStack.removeFirst()] -= 1.0;
+	}
+	
+	private double distance(double[] actual){
+		double dist = 0.0;
+		for(int c = 0; c < clusterCount; c++){
+			dist += Math.abs(actual[c] - classificationCounts[c]);
 		}
-		
-		if(debug){
-			System.out.println("       -> building normalizer");
-		}
-		
-		// build the normalizer
-		normalizer = new NormalizeMidrange();
-		normalizer.build(cdata);
-		
-		if(debug){
-			System.out.println("       -> normalizing data");
-		}
-		
-		// normalize the data
-		normalizer.filter(cdata);
-		
-		return cdata;
+		return dist;
 	}
 	
 	// expects n stringified numerical values
-	private static Instance makeInstance(ArrayList<Integer> data){
+	private static Instance makeInstance(List<Double> data){
 		double[] converted = new double[data.size()];
 		for(int index = 0; index < converted.length; index++){
-			converted[index] = (double)data.get(index);
-		}
-		return new DenseInstance(converted);
-	}
-	
-	// expects n stringified numerical values
-	private static Instance makeInstance(String line){
-		String[] sline = line.split(" ");
-		double[] converted = new double[sline.length];
-		for(int index = 0; index < sline.length; index++){
-			try{
-				converted[index] = Double.parseDouble(sline[index]);
-			}
-			catch(Exception x){
-				converted[index] = 0;
-				throw new IllegalArgumentException(sline[index] + " could not be cast to double");
-			}
+			converted[index] = data.get(index);
 		}
 		return new DenseInstance(converted);
 	}
 	
 	// expects a label name and stringified numerical values
-	public static Instance makeTrainingInstance(String line){
-		String[] sline = line.split(" ");
-		double[] converted = new double[sline.length-1];
-		for(int index = 1; index < sline.length; index++){
-			try{
-				converted[index-1] = Double.parseDouble(sline[index]);
-			}
-			catch(Exception x){
-				converted[index] = 0;
-				throw new IllegalArgumentException("String could not be cast to double");
-			}
+	public static Instance makeTrainingInstance(String label, List<Double> data){
+		double[] converted = new double[data.size()];
+		for(int index = 0; index < converted.length; index++){
+			converted[index] = data.get(index);
 		}
-		return new DenseInstance(converted, sline[0]);
+		return new DenseInstance(converted, label);
+	}
+	
+	public static void main(String[] args){
+		GatewayServer gs = new GatewayServer(new Identifier());
+		gs.start();
 	}
 }
