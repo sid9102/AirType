@@ -35,12 +35,6 @@ def main():
     clock = pygame.time.Clock()
     clock.tick(60)
 
-    fingers = {'resting':'-1','leftIndex':'3','leftMiddle':'2','leftRing':'1',
-            'leftPinky':'0', 'rightIndex':'4','rightMiddle':'5','rightRing':'6',
-            'rightPinky':'7', 'space':'8'};
-    fing_inv = {v:k for k, v in fingers.items()}
-    
-
     wordFrag = []
     paragraphText = ''
     altCombined = ''
@@ -53,20 +47,31 @@ def main():
 
     pygame.event.set_allowed((pygame.QUIT, pygame.KEYDOWN))
 
+    hit_space = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
                 pygame.quit()
+                sys.exit(0)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                if event.key == pygame.K_SPACE:
+                    hit_space = True
 
         values = tuple(ser.readline().split("\t"))
         values = map(int, values)
         if tr.mode is 'ready':
             for event in pygame.event.get():
                 if event.type == pygame.KEYUP: 
-                    tr.mode = 'tare'
-        elif tr.mode is 'tare':
+                    tr.mode = 'tareRest'
+        elif tr.mode is 'tareRest':
             # Get the average of 10 values, set this as the base
-            tr.tareDevice(values)
+            tr.tareRest(values)
+        elif tr.mode is 'tarePress':
+            # Get the average of 10 values, set this as the base
+            tr.tarePress(values)
     
         elif tr.mode is 'train':
             # Update the index of what character we are mapping to a finger
@@ -85,15 +90,17 @@ def main():
 
         elif tr.mode is 'generate':
             tr.generatePermutations()
+            gw.entry_point.initAirType('test')
+
 
         else:
             finger = tr.handleKeypress(values)
-            print finger
 
             if finger == -1:
                 finger = '-1'
             # if a space get the best word possible
-            elif finger is '8': # space
+            elif hit_space:
+                hit_space = False
                 # Cycle candidates
                 if len(wordFrag) == 0:
                     print alts
@@ -141,24 +148,38 @@ class Trainer():
         self.mapping = {}
         self.mode = 'ready'
         self.tareThresh = 10
-        self.tareValues = None
-        self.offsets = None
-        self.pressThresh = 25 
+        self.tareRestValues = None # Used for averaging the floor threshold
+        self.tarePressValues = None # Used for averaging the ceiling threshold
+        self.restOffsets = None
+        self.pressOffsets = None
+        self.pressThresh = .55
+
+        # Custom thresholds per finger for now until I can add training for
+        # individual finger ranges
+        #idx 1 2 3 4 (right, index -> pinky)
+        # 45 70 30 60
+        #idx 4 5 6 7 (left, indez -> pinky)
+        # 90 60 50 60    
+        self.ranges = [45.0, 70.0, 30.0, 60.0, 90.0, 60.0, 50.0, 60.0]
+
 
         # Used for generating permutations
         self.freq_dict = {}
 
     def handleKeypress(self, data):
-        """ Determine if any finger was pressed given the data, if so prevent
+        """Determine if any finger was pressed given the data, if so prevent
         further keypresses until user returns to normal position, return the
-        finger that was pressed """
+        finger that was pressed"""
 
-        data = [i - j for i, j in zip(data, self.offsets)]
+        data = [i - j for i, j in zip(data, self.restOffsets)]
 
-        max_value= max(data)
+        #TODO TEMP
+        ratios = [ i/j for i,j in zip(data, self.ranges)]
+
+        max_value = max(ratios)
         fingerPressed = None
         if max_value > self.pressThresh:
-            ind = data.index(max_value)
+            ind = ratios.index(max_value)
             fingerPressed = ind
 
         if fingerPressed is not None:
@@ -195,31 +216,43 @@ class Trainer():
             # increment the index
             self.train_idx += 1
 
-    def tareDevice(self, data):
+    def tareRest(self, data):
         if self.tareThresh > 0:
-            if self.tareValues is None:
-                self.tareValues = data
+            if self.tareRestValues is None:
+                self.tareRestValues = data
             else:
-                self.tareValues = map(sum, zip(self.tareValues, data))
+                self.tareRestValues = map(sum, zip(self.tareRestValues, data))
 
             self.tareThresh -= 1
 
         else:
-            self.offsets = [x/10 for x in self.tareValues]
-            print 'average',self.tareValues
-            self.mode = 'generate' # TODO
-            #self.mode = 'train'
+            self.restOffsets = [x//10 for x in self.tareRestValues]
+            print 'average', self.tareRestValues
+            #self.mode = 'generate' # TODO
+            self.tareTresh = 10
+            self.mode = 'train'
+
+    def tarePress(self, data):
+        if self.tareThresh > 0:
+            if self.tarePressValues is None:
+                self.tarePressValues = data
+            else:
+                self.tarePressValues = map(sum, zip(self.tarePressValues, data))
+
+            self.tareThresh -= 1
+        else:
+            self.pressOffsets = [x//10 for x in self.tarePressValues]
+            print 'average',self.tarePressValues
+            #self.mode = 'generate' # TODO
+            self.mode = 'train'
 
     def generatePermutations(self):
         # take all words from a dictionary and generate their 'word #'
         # use the word number as a key, and a word list as the values
         # sort the values based on frequency
 
-        temp = {0: set(['s', 'g', 'o']), 1: set(['a', 'e', 'd', '-', 'm', 'l', 'o', 'p', 'r', 'v', 'y', 'z']), 2: set(['b', "'", 'f', 'j', 'o', 'n', 'r', 'u', 'w', 'x']), 3: set(['c', 'e', 'i', 'h', 'k', 'q', 'u', 't'])}
         # Reverse the mapping
-        inv_mapping = dict( (v,k) for k in temp for v in temp[k] )
-        #inv_mapping = dict( (v,k) for k in self.mapping for v in self.mapping[k] )
-
+        inv_mapping = dict( (v,k) for k in self.mapping for v in self.mapping[k] )
 
         # Get frequencies of words, store as a dictionary
         freq = open('freqList.csv', 'r')
@@ -261,21 +294,18 @@ class Trainer():
         f.close()
 
         # Now store the permutation dict in a file
-        f = open('permutations.txt', 'wb') 
+        f = open('../permutations.txt', 'wb') 
         for numberword, words in sorted(permutations.items()):
             f.write(str(numberword)+':\n')
             for word in words:
                 f.write(word+'\n')
         f.close()
 
-        self.mode = 'pygame'
-        
+        self.mode = 'airtype'
 
     # Key function used for sorting a list of words based on frequency
     def freqKey(self, val):
         return self.freq_dict[val]
-
-
 
 if __name__ == "__main__":
     main()

@@ -81,47 +81,47 @@ public class NextWord{
 		sentences.close();
 	}
 	
-	public void runTests() throws Exception{
-		System.out.println("Adding A, B, B");
-		place("A");
-		place("B");
-		place("B");
-		System.out.println("    Passed? "+(network.contains("A") && network.contains("B")));
-		
-		System.out.println("Move A");
-		move("A");
-		System.out.println("    Passed? "+(cursor.getLocation().equals("A")));
-		reset();
-		
-		System.out.println("Move C throws exception");
-		boolean e = false;
-		try{
-			move("C");
-		}
-		catch(Exception x){
-			e = true;
-		}
-		System.out.println("    Passed? "+(e));
-		reset();
-		
-		System.out.println("Link A, B");
-		move("A");
-		place("B");
-		System.out.println("    Passed? "+(network.contains("A","B")));
-		reset();
-		
-		System.out.println("Link A, C");
-		move("A");
-		place("C");
-		System.out.println("    Passed? "+(network.contains("A","C") && network.contains("C")));
-		reset();
-		
-		System.out.println("Save and load");
-		save(new File("tst.nwn"));
-		load(new File("tst.nwn"));
-		System.out.println("    Passed? "+
-				(network.contains("A") && network.contains("B") && network.contains("C")
-				 && network.contains("A","B") && network.contains("A","C"))
-		);
-	}
+//	public void runTests() throws Exception{
+//		System.out.println("Adding A, B, B");
+//		place("A");
+//		place("B");
+//		place("B");
+//		System.out.println("    Passed? "+(network.contains("A") && network.contains("B")));
+//
+//		System.out.println("Move A");
+//		move("A");
+//		System.out.println("    Passed? "+(cursor.getLocation().equals("A")));
+//		reset();
+//
+//		System.out.println("Move C throws exception");
+//		boolean e = false;
+//		try{
+//			move("C");
+//		}
+//		catch(Exception x){
+//			e = true;
+//		}
+//		System.out.println("    Passed? "+(e));
+//		reset();
+//
+//		System.out.println("Link A, B");
+//		move("A");
+//		place("B");
+//		System.out.println("    Passed? "+(network.contains("A","B")));
+//		reset();
+//
+//		System.out.println("Link A, C");
+//		move("A");
+//		place("C");
+//		System.out.println("    Passed? "+(network.contains("A","C") && network.contains("C")));
+//		reset();
+//
+//		System.out.println("Save and load");
+//		save(new File("tst.nwn"));
+//		load(new File("tst.nwn"));
+//		System.out.println("    Passed? "+
+//				(network.contains("A") && network.contains("B") && network.contains("C")
+//				 && network.contains("A","B") && network.contains("A","C"))
+//		);
+//	}
 }

@@ -28,7 +28,39 @@ public class PythonInterface
     private Engine mEngine;
     private ArrayList<String> mAlts;
 
-    public PythonInterface() throws IOException{
+    public PythonInterface(){
+        System.out.println("Created python gateway interface");
+    }
+
+    public EncodedTrie getEncodedTrie() {
+        return mEncodedTrie;
+    }
+
+    public String getWord(String digits) {
+        String result = "";
+        mEncodedTrie.resetCurNode();
+        for (int j = 0; j < digits.length(); j++) {
+            int index = Integer.parseInt(digits.substring(j, j + 1));
+            if (mEncodedTrie.goToChild(index)) {
+                result = mEncodedTrie.getWord();
+            } else
+                break;
+        }
+        mAlts = mEncodedTrie.getAlts();
+        System.out.println(result);
+        return result;
+    }
+
+    public void train(String datalist){
+        //mEngine.train(datalist);
+    }
+
+    public String classifyData(String data){
+
+        return mEngine.send(data);
+    }
+
+    public void initAirType(String bullshit) throws IOException{
         // Make the map
         Scanner s = null;
         try {
@@ -61,34 +93,6 @@ public class PythonInterface
         mEncodedTrie = new EncodedTrie(airTrie, null);
 
         mEngine = new Engine("train.data", false, false);
-    }
-
-    public EncodedTrie getEncodedTrie() {
-        return mEncodedTrie;
-    }
-
-    public String getWord(String digits) {
-        String result = "";
-        mEncodedTrie.resetCurNode();
-        for (int j = 0; j < digits.length(); j++) {
-            int index = Integer.parseInt(digits.substring(j, j + 1));
-            if (mEncodedTrie.goToChild(index)) {
-                result = mEncodedTrie.getWord();
-            } else
-                break;
-        }
-        mAlts = mEncodedTrie.getAlts();
-        System.out.println(result);
-        return result;
-    }
-
-    public void train(String datalist){
-        //mEngine.train(datalist);
-    }
-
-    public String classifyData(String data){
-
-        return mEngine.send(data);
     }
 
     public ArrayList<String> getAlts(){
