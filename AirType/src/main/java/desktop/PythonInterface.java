@@ -52,12 +52,12 @@ public class PythonInterface
         return result;
     }
 
-    public void mapGesture(String gesture, List<List<Double>> data){
-        mIdentifier.mapGuesture(gesture, data);
+    public void mapGesture(String gesture, List<List<Double>> data, boolean debug){
+        mIdentifier.mapGuesture(gesture, data, debug);
     }
 
-    public void train(List<List<Double>> datalist){
-        mIdentifier.build(30, 20, datalist);
+    public void train(List<List<Double>> datalist, boolean debug){
+        mIdentifier.build(30, 20, datalist, debug);
         //mEngine.train(datalist);
     }
 
