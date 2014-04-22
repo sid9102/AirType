@@ -10,20 +10,27 @@ import java.util.Scanner;
 
 import libsvm.SelfOptimizingLinearLibSVM;
 import net.sf.javaml.classification.Classifier;
+import net.sf.javaml.classification.KNearestNeighbors;
+import net.sf.javaml.clustering.AQBC;
 import net.sf.javaml.clustering.Clusterer;
+import net.sf.javaml.clustering.DensityBasedSpatialClustering;
 import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.clustering.KMedoids;
+import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
+import net.sf.javaml.distance.DistanceMeasure;
 import net.sf.javaml.filter.normalize.NormalizeMidrange;
 import py4j.GatewayServer;
 
 public class Identifier {
 	private NormalizeMidrange normalizer;
 	private Classifier classifier;
-	private HashMap<String, double[]> guestureCounts;
+	private HashMap<double[], String> gestureCounts;
 	private int clusterCount;
+	private int stackSize;
 	private int none_index;
 	private String none_classification = "None";
 	
@@ -31,21 +38,58 @@ public class Identifier {
 	private LinkedList<Integer> classificationStack;
 	private double[] classificationCounts;
 	
-	public void build(int stackSize, int targetClusterCount, List<List<Double>> data){
+	public void build(int stackSize, int targetClusterCount, List<List<Double>> data, boolean debug){
 		// convert to dataset
 		Dataset ds = new DefaultDataset();
 		for(List<Double> d : data){
 			ds.add(makeInstance(d));
 		}
 		
-		// build normalizer and normalize data
+		//build normalizer and normalize data
 		normalizer = new NormalizeMidrange();
 		normalizer.build(ds);
 		normalizer.filter(ds);
 		
 		// cluster data
-		Clusterer kmeans = new KMeans(targetClusterCount, 1000);
-		Dataset[] clusters =  kmeans.cluster(ds);
+		DistanceMeasure dm = new DistanceMeasure() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean compare(double arg0, double arg1) {
+				return arg0 < arg1;
+			}
+
+			@Override
+			public double getMaxValue() {
+				return Double.MAX_VALUE;
+			}
+
+			@Override
+			public double getMinValue() {
+				return 0.0;
+			}
+
+			@Override
+			public double measure(Instance arg0, Instance arg1) {
+				double distance = 0.0;
+				for(Integer x : arg0.keySet()){
+					distance += (arg0.get(x) - arg1.get(x)) * (arg0.get(x) - arg1.get(x));
+				}
+				return distance;
+			}
+		};
+		
+		Clusterer kmeans = new KMedoids(targetClusterCount, 1000, dm);
+		//Clusterer kmeans = new KMeans(targetClusterCount, 1000);
+		Dataset[] clusters = kmeans.cluster(ds);
+		
+		if(debug){
+			System.out.println("build debug cluster sizes");
+			int i = 0;
+			for(Dataset d : clusters){
+				System.out.println(" cluster: " + (i++) + ", size: " + d.size());
+			}
+		}
 		
 		// assign class values in interval [0-clusters.size())
 		int ci = 0;
@@ -63,37 +107,35 @@ public class Identifier {
 		classifier.buildClassifier(lds);
 		
 		// set up rolling window for meta-classification analysis
-		guestureCounts = new HashMap<String, double[]>();
+		this.stackSize = stackSize;
+		gestureCounts = new HashMap<double[], String>();
 		clusterCount = clusters.length + 1;
 		classificationCounts = new double[clusterCount];
 		none_index = clusterCount - 1; // last index corresponds to no classification
 		classificationStack = new LinkedList<Integer>();
 		for(int index = 0; index < stackSize; index++){
 			classificationStack.addFirst(none_index);
+			classificationCounts[none_index] += 1 / (double)stackSize;
 		}
 	}
 	
-	public void mapGuesture(String guesture, List<List<Double>> data){
+	public void mapGuesture(String guesture, List<List<Double>> data, boolean debug){
 		double[] counts;
 		
-		if(guestureCounts.containsKey(guesture)){
-			counts = guestureCounts.get(guesture);
-			for(List<Double> datum : data){
-				int c = classify(datum);
-				counts[c] = counts[c] + (1.0 / (double)data.size());
-			}
-			for(int c = 0; c < counts.length; c++){
-				counts[c] /= 2;
-			}
+		counts = new double[clusterCount];
+		gestureCounts.put(counts,guesture);
+		for(int c = 0; c < clusterCount; c++){
+			counts[c] = 0.0;
 		}
-		else{
-			counts = new double[clusterCount];
-			guestureCounts.put(guesture,counts);
-			for(int c = 0; c < clusterCount; c++){
-				counts[c] = 0.0;
-			}
-			for(List<Double> datum : data){
-				counts[classify(datum)] =  1.0 / (double)data.size();
+		for(List<Double> datum : data){
+			counts[classify(datum)] += 1.0 / (double)data.size();
+		}
+		
+		if(debug){
+			System.out.println("map guesture debug");
+			System.out.println("guesture: " + guesture);
+			for(int index = 0; index < counts.length; index++){
+				System.out.println("  " + index + ": " + counts[index]);
 			}
 		}
 	}
@@ -114,23 +156,23 @@ public class Identifier {
 	}
 	
 	public String identify(){
-		String guesture = "None";
-		double gdist = Double.MAX_VALUE;
-		for(String pg : guestureCounts.keySet()){
-			double pgdist = distance(guestureCounts.get(pg));
-			if(pgdist <= gdist){
-				gdist = pgdist;
-				guesture = pg;
+		double[] mincount = null;
+		double mindist = Double.MAX_VALUE;
+		for(double[] ecount : gestureCounts.keySet()){
+			double edist = distance(ecount);
+			if(edist <= mindist){
+				mindist = edist;
+				mincount = ecount;
 			}
-			System.out.println("      " + pg + " : " + pgdist);
+			System.out.println("      " + gestureCounts.get(ecount) + " : " + edist);
 		}
-		return guesture;
+		return gestureCounts.get(mincount);
 	}
 	
-	private void record(int c){
+	private void record(int c) {
 		classificationStack.addLast(c);
-		classificationCounts[c] += 1.0;
-		classificationCounts[classificationStack.removeFirst()] -= 1.0;
+		classificationCounts[c] += 1.0 / (double)stackSize;
+		classificationCounts[classificationStack.removeFirst()] -= 1.0 / (double)stackSize;
 	}
 	
 	private double distance(double[] actual){
@@ -141,13 +183,24 @@ public class Identifier {
 		return dist;
 	}
 	
+	private static Instance filter(Instance i, double low, double high){
+		double xv;
+		for(Integer x : i.keySet()){
+			xv = Math.abs(i.get(x));
+			if(xv <= low || xv >= high){
+				i.put(x, 0.0);
+			}
+		}
+		return i;
+	}
+	
 	// expects n stringified numerical values
 	private static Instance makeInstance(List<Double> data){
 		double[] converted = new double[data.size()];
 		for(int index = 0; index < converted.length; index++){
 			converted[index] = data.get(index);
 		}
-		return new DenseInstance(converted);
+		return filter(new DenseInstance(converted), 2.0, 500.0);
 	}
 	
 	// expects a label name and stringified numerical values
