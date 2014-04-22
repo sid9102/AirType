@@ -1,3 +1,4 @@
+#!/usr/local/bin/python
 import serial, pygame, random, sys, time, os, py4j
 from py4j.java_gateway import JavaGateway, GatewayClient
 from pygame.locals import *
@@ -20,7 +21,7 @@ def serial_ports():
             try:
                 s = serial.Serial(i)
                 s.close()
-                yield 'COM' + str(i + 1)
+                yield 'tty' + str(i + 1)
             except serial.SerialException:
                 pass
     else:
@@ -60,6 +61,8 @@ def installorget(ri):
 def acquire_port(baud):
     global ser
     ports = list(serial_ports())
+    ser = serial.Serial('/dev/tty.usbmodem641')
+    return
     for port in ports:
         try:
             ser = serial.Serial(port, baud)
