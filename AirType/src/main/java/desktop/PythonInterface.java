@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -13,7 +14,7 @@ import io.airtype.EncodedTrie;
 import io.airtype.FingerMap;
 import io.airtype.TrieMaker;
 import py4j.GatewayServer;
-import sprokit.Engine;
+import sprokit.Identifier;
 
 /**
  * Created by sid9102 on 3/4/14.
@@ -25,7 +26,7 @@ public class PythonInterface
 {
     private TreeMap<String, ArrayList<String>> permutationMap;
     private EncodedTrie mEncodedTrie;
-    private Engine mEngine;
+    private Identifier mIdentifier;
     private ArrayList<String> mAlts;
 
     public PythonInterface(){
@@ -51,16 +52,20 @@ public class PythonInterface
         return result;
     }
 
-    public void train(String datalist){
+    public void mapGesture(String gesture, List<List<Double>> data){
+        mIdentifier.mapGuesture(gesture, data);
+    }
+
+    public void train(List<List<Double>> datalist){
+        mIdentifier.build(30, 20, datalist);
         //mEngine.train(datalist);
     }
 
-    public String classifyData(String data){
-
-        return mEngine.send(data);
+    public String classifyData(List<Double> data){
+        return mIdentifier.identify(data);
     }
 
-    public void initAirType(String bullshit) throws IOException{
+    public void initAirType() throws IOException{
         // Make the map
         Scanner s = null;
         try {
@@ -92,7 +97,7 @@ public class PythonInterface
         AirTrie airTrie = TrieMaker.makeTrie(new FingerMap(false), permutationMap);
         mEncodedTrie = new EncodedTrie(airTrie, null);
 
-        mEngine = new Engine("train.data", false, false);
+        mIdentifier = new Identifier();
     }
 
     public ArrayList<String> getAlts(){

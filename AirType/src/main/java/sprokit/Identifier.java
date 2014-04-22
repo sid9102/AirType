@@ -105,7 +105,7 @@ public class Identifier {
 		if(c instanceof String && ((String)c).equals(none_classification)){
 			return none_index;
 		}
-		return (int) c;
+        return (Integer)c;
 	}
 	
 	public String identify(List<Double> data){
