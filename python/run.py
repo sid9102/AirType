@@ -24,7 +24,6 @@ def main():
 
         # Get the data from serial
         data = ser.getFingerData()
-        print data
 
         # TODO: handle states
         if fm.mode is 'ready':

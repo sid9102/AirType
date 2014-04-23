@@ -17,7 +17,7 @@ class pygame_demo():
         self.cand_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 80)
         self.train_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 60)
 
-        self.paragraphText = 'Type some words now'
+        self.paragraphText = ''
         self.altCombined = ''
 
         self.hit_space = False
