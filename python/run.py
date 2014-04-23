@@ -24,6 +24,7 @@ def main():
 
         # Get the data from serial
         data = ser.getFingerData()
+        print data
 
         # TODO: handle states
         if fm.mode is 'ready':
@@ -34,7 +35,6 @@ def main():
             fm.getRanges(data)
         elif fm.mode is 'train':
             fm.trainValues(data)
-
         elif fm.mode is 'generate':
             fm.generatePermutations()
             gw.entry_point.initAirType()

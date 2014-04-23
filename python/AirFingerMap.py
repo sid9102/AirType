@@ -19,7 +19,7 @@ class AirFingerMap():
         self.ranges = None
 
         self.restOffsets = None
-        self.pressThresh = .9 # Finger must surpass this ratio (movement/range)
+        self.pressThresh = .7 # Finger must surpass this ratio (movement/range)
                               # for a keypress
 
         # Custom thresholds per finger for now until I can add training for
@@ -106,48 +106,28 @@ class AirFingerMap():
             self.range_iterations -= 1
 
         else:
-<<<<<<< HEAD
-            averages = []
-            stddevs = []
-            ranges = []
-
-            # sum each finger's changes
-=======
             averages = [0]*8
             stddevs = [0]*8
             ranges = [0]*8
             
->>>>>>> 488a6bfd70ee1b7ca046d8f9905a27ff512626ce
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     averages[index] += dps[index]
 
-<<<<<<< HEAD
-            # divide each finger's sum to get its average
-            for a in averages:
-                a /= len(self.rangeData)
-=======
             for a in range(len(averages)):
                 averages[a] /= len(self.rangeData)
 
             print 'averages:', averages
->>>>>>> 488a6bfd70ee1b7ca046d8f9905a27ff512626ce
 
             # save (average - actual)^2 ..... for each finger
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     stddevs[index] += (dps[index] - averages[index]) * (dps[index] - averages[index])
 
-<<<<<<< HEAD
-            # square root the previous calculation to get standard deviation
-            for s in stddevs:
-                s = math.sqrt(s/len(self.rangeData))
-=======
             print 'stddvs:',stddevs
 
             for s in range(len(stddevs)):
                 stddevs[s] = math.sqrt(stddevs[s]/len(self.rangeData))
->>>>>>> 488a6bfd70ee1b7ca046d8f9905a27ff512626ce
 
             # multiply the standard deviation by 2 to get the range
             for index in range(len(averages)):
