@@ -1,3 +1,6 @@
+import re
+import math
+
 class AirFingerMap():
     def __init__(self, training_text):
         self.press_done = [True]*8 # Determine if a finger has pressed a key and
@@ -9,12 +12,12 @@ class AirFingerMap():
         self.tareThresh = 10
         self.tareRestValues = None # Used for averaging the floor threshold
         self.tarePressValues = None # Used for averaging the ceiling threshold
-        self.getRanges = 50
+        self.range_iterations = 200
         self.rangeData = []
         self.ranges = None
         self.restOffsets = None
         self.pressOffsets = None
-        self.pressThresh = .7
+        self.pressThresh = .9
 
         # Custom thresholds per finger for now until I can add training for
         # individual finger ranges
@@ -22,7 +25,7 @@ class AirFingerMap():
         # 45 70 30 60
         #idx 4 5 6 7 (left, indez -> pinky)
         # 90 60 50 60    
-        self.ranges = [30.0, 40.0, 50.0, 70.0, 70.0, 50.0, 40.0, 30.0]
+        self.ranges = [40.0, 50.0, 60.0, 70.0, 70.0, 50.0, 40.0, 30.0]
 
         # Used for generating permutations
         self.freq_dict = {}
@@ -34,7 +37,6 @@ class AirFingerMap():
 
         data = [i - j for i, j in zip(data, self.restOffsets)]
 
-        #TODO TEMP
         ratios = [ i/j for i,j in zip(data, self.ranges)]
 
         sorted_ratios = [i[0] for i in sorted(enumerate(ratios), key=lambda x:x[1], reverse=True)]
@@ -92,48 +94,39 @@ class AirFingerMap():
             print 'average', self.tareRestValues
             #self.mode = 'generate' # TODO
             self.tareTresh = 10
-            self.mode = 'train'
-
-    def tarePress(self, data):
-        if self.tareThresh > 0:
-            if self.tarePressValues is None:
-                self.tarePressValues = data
-            else:
-                self.tarePressValues = map(sum, zip(self.tarePressValues, data))
-
-            self.tareThresh -= 1
-        else:
-            self.pressOffsets = [x//10 for x in self.tarePressValues]
-            print 'average',self.tarePressValues
-            #self.mode = 'generate' # TODO
             self.mode = 'getranges'
 
     def getRanges(self, data):
-        if self.getRanges > 0:
+        if self.range_iterations > 0:
+            print 'move yo fingers'
             self.rangeData.append(data)
-            self.getRanges -= 1
+            self.range_iterations -= 1
 
         else:
-            averages = []
-            stddevs = []
-            ranges = []
+            averages = [0]*8
+            stddevs = [0]*8
+            ranges = [0]*8
             
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     averages[index] += dps[index]
 
-            for a in averages:
-                a /= len(self.rangeData)
+            for a in range(len(averages)):
+                averages[a] /= len(self.rangeData)
+
+            print 'averages:', averages
 
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     stddevs[index] += (dps[index] - averages[index]) * (dps[index] - averages[index])
 
-            for s in stddevs:
-                s = math.sqrt(s/len(self.rangeData))
+            print 'stddvs:',stddevs
+
+            for s in range(len(stddevs)):
+                stddevs[s] = math.sqrt(stddevs[s]/len(self.rangeData))
 
             for index in range(len(averages)):
-                ranges[index] = stddevss[index] * 2
+                ranges[index] = stddevs[index] * 2
 
             print("ranges: " + str(ranges))
             self.mode = 'train'
@@ -164,7 +157,7 @@ class AirFingerMap():
             line = line.strip()
             if line[-1] == '=':
                 line = line[:-1]
-            if re.search(r"[^A-Za-z\'-]", line) is None:
+            if re.search(r"[^A-Za-z]", line) is None:
                 # Generate a numberword
                 result = str()
                 for letter in line:
