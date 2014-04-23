@@ -19,6 +19,10 @@ class AirFingerMap():
         self.ranges = None
 
         self.restOffsets = None
+
+        self.scrollingThresh = [1]*8
+        self.scrollingThreshMag = .50 # the threshold increase upon a finger press
+        self.scrollingThreshReset = 5 # the number of cycles to scroll back the press
         self.pressThresh = .7 # Finger must surpass this ratio (movement/range)
                               # for a keypress
 
@@ -43,15 +47,28 @@ class AirFingerMap():
         ratios = [ i/j for i,j in zip(data, self.ranges)]
 
         sorted_ratios = [i[0] for i in sorted(enumerate(ratios), key=lambda x:x[1], reverse=True)]
-        
+
+        # scroll all activated thresholds back to 1
+        for index in range(len(self.scrollingThresh)):
+            if self.scrollingThresh[index] > 1:
+                self.scrollingThresh[index] -= self.scrollingThreshMag / self.scrollingThreshReset
+
         for index in sorted_ratios:
             fingerPressed = None
-            if ratios[index] > self.pressThresh:
+            if ratios[index] > self.pressThresh * self.scrollingThresh[index]:
                 fingerPressed = index
 
             if fingerPressed is not None:
                 if self.press_done[fingerPressed]:
                     self.press_done[fingerPressed] = False
+
+                    # increment the scrolling thresh for affected fingeers
+                    # (ie activated finger -1 and +1)
+                    if fingerPressed >= 1:
+                        self.scrollingThresh[fingerPressed-1] += self.scrollingThreshMag
+                    if fingerPressed <= 6:
+                        self.scrollingThresh[fingerPressed+1] += self.scrollingThreadMag
+                    
                     return fingerPressed
             else:
                 self.press_done[index] = True
@@ -101,30 +118,30 @@ class AirFingerMap():
 
     def getRanges(self, data):
         if self.range_iterations > 0:
-            print 'move yo fingers'
             self.rangeData.append(data)
             self.range_iterations -= 1
 
         else:
             averages = [0]*8
-            stddevs = [0]*8
+            asigcounts = [1]*8
+            stddevs = [1]*8 # 1 to avoid div by zero error
             ranges = [0]*8
             
             for dps in self.rangeData:
                 for index in range(len(dps)):
-                    averages[index] += dps[index]
+                    if dps[index] > 0:
+                        asigcounts[index] += 1
+                        averages[index] += dps[index]
 
             for a in range(len(averages)):
-                averages[a] /= len(self.rangeData)
+                averages[a] /= asigcounts[index]
 
-            print 'averages:', averages
+            print("averages: " + str(averages))
 
             # save (average - actual)^2 ..... for each finger
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     stddevs[index] += (dps[index] - averages[index]) * (dps[index] - averages[index])
-
-            print 'stddvs:',stddevs
 
             for s in range(len(stddevs)):
                 stddevs[s] = math.sqrt(stddevs[s]/len(self.rangeData))
@@ -133,7 +150,7 @@ class AirFingerMap():
             for index in range(len(averages)):
                 ranges[index] = stddevs[index] * 2
 
-            print("ranges: " + str(ranges))
+            print("done, ranges: " + str(ranges))
             self.mode = 'train'
             self.ranges = ranges
 
