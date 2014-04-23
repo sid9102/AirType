@@ -9,15 +9,18 @@ class AirFingerMap():
         self.training_text = training_text
         self.mapping = {}
         self.mode = 'ready'
+
         self.tareThresh = 10
         self.tareRestValues = None # Used for averaging the floor threshold
         self.tarePressValues = None # Used for averaging the ceiling threshold
+
         self.range_iterations = 200
         self.rangeData = []
         self.ranges = None
+
         self.restOffsets = None
-        self.pressOffsets = None
-        self.pressThresh = .9
+        self.pressThresh = .9 # Finger must surpass this ratio (movement/range)
+                              # for a keypress
 
         # Custom thresholds per finger for now until I can add training for
         # individual finger ranges
