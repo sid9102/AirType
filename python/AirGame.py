@@ -17,6 +17,11 @@ class pygame_demo():
         self.cand_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 80)
         self.train_font = pygame.font.Font("/Users/pfista/Library/Fonts/ProximaNova-Light.otf", 60)
 
+        self.paragraphText = 'Type some words now'
+        self.altCombined = ''
+
+        self.hit_space = False
+
         # Set a limit to how fast to refresh?
         clock = pygame.time.Clock()
         clock.tick(60)
@@ -39,6 +44,7 @@ class pygame_demo():
                 if event.key == pygame.K_ESCAPE:
                     pygame.event.post(pygame.event.Event(pygame.QUIT))
                 if event.key == pygame.K_SPACE:
+                    self.hit_space = True
                     pass # TODO: this is a control incident
 
         if tr.mode is 'train':
@@ -55,10 +61,10 @@ class pygame_demo():
             pygame.display.flip()
         elif tr.mode is 'airtype':
             # Update pygame screen
-            chosenWord = self.font.render(paragraphText, True, text_color)
-            candidates = self.cand_font.render(altCombined, True, text_color)
+            chosenWord = self.font.render(self.paragraphText, True, self.text_color)
+            candidates = self.cand_font.render(self.altCombined, True, self.text_color)
 
             self.screen.fill(self.back)
-            self.screen.blit(chosenWord, (-self.font.size(paragraphText)[0]/2 + 1920/2, 1080/2 -150))
-            self.screen.blit(candidates, (-self.cand_font.size(altCombined)[0]/2 + 1920/2, 1080/2 +100))
+            self.screen.blit(chosenWord, (-self.font.size(self.paragraphText)[0]/2 + 1920/2, 1080/2 -150))
+            self.screen.blit(candidates, (-self.cand_font.size(self.altCombined)[0]/2 + 1920/2, 1080/2 +100))
             pygame.display.flip()
