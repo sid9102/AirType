@@ -60,16 +60,11 @@ public class NextWord{
 	
 	// trains the network on a large body of text
 	public void train(File f) throws Exception{
-		Pattern sentenceDelimiter = Pattern.compile("\n");
-		Pattern wordDelimiter = Pattern.compile("(\\s)+");
-		
-		Scanner sentences = new Scanner(Utility.load(f));
-		sentences.useDelimiter(sentenceDelimiter);
 		Scanner words;
+		Scanner sentences = new Scanner(Utility.load(f));
 		while(sentences.hasNext()){
-			words = new Scanner(sentences.next());
-			words.useDelimiter(wordDelimiter);
 			cursor.reset();
+			words = new Scanner(sentences.nextLine());
 			String from = words.next();
 			double value = Double.parseDouble(words.next());
 			String to = words.next();

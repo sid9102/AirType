@@ -9,6 +9,9 @@ class AirFingerMap():
         self.tareThresh = 10
         self.tareRestValues = None # Used for averaging the floor threshold
         self.tarePressValues = None # Used for averaging the ceiling threshold
+        self.getRanges = 50
+        self.rangeData = []
+        self.ranges = None
         self.restOffsets = None
         self.pressOffsets = None
         self.pressThresh = .7
@@ -103,7 +106,38 @@ class AirFingerMap():
             self.pressOffsets = [x//10 for x in self.tarePressValues]
             print 'average',self.tarePressValues
             #self.mode = 'generate' # TODO
+            self.mode = 'getranges'
+
+    def getRanges(self, data):
+        if self.getRanges > 0:
+            self.rangeData.append(data)
+            self.getRanges -= 1
+
+        else:
+            averages = []
+            stddevs = []
+            ranges = []
+            
+            for dps in self.rangeData:
+                for index in range(len(dps)):
+                    averages[index] += dps[index]
+
+            for a in averages:
+                a /= len(self.rangeData)
+
+            for dps in self.rangeData:
+                for index in range(len(dps)):
+                    stddevs[index] += (dps[index] - averages[index]) * (dps[index] - averages[index])
+
+            for s in stddevs:
+                s = math.sqrt(s/len(self.rangeData))
+
+            for index in range(len(averages)):
+                ranges[index] = stddevss[index] * 2
+
+            print("ranges: " + str(ranges))
             self.mode = 'train'
+            self.ranges = ranges
 
     def generatePermutations(self):
         # take all words from a dictionary and generate their 'word #'
