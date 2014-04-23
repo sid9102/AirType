@@ -10,7 +10,7 @@ class AirFingerMap():
         self.tarePressValues = None # Used for averaging the ceiling threshold
         self.restOffsets = None
         self.pressOffsets = None
-        self.pressThresh = .2
+        self.pressThresh = .4
 
         # Custom thresholds per finger for now until I can add training for
         # individual finger ranges
@@ -18,8 +18,7 @@ class AirFingerMap():
         # 45 70 30 60
         #idx 4 5 6 7 (left, indez -> pinky)
         # 90 60 50 60    
-        self.ranges = [45.0, 70.0, 30.0, 60.0, 90.0, 60.0, 50.0, 60.0]
-
+        self.ranges = [30.0, 40.0, 50.0, 70.0, 70.0, 50.0, 40.0, 30.0]
 
         # Used for generating permutations
         self.freq_dict = {}
@@ -77,6 +76,7 @@ class AirFingerMap():
     def tareRest(self, data):
         if self.tareThresh > 0:
             if self.tareRestValues is None:
+                print 'Set initial tare values'
                 self.tareRestValues = data
             else:
                 self.tareRestValues = map(sum, zip(self.tareRestValues, data))

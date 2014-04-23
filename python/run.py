@@ -17,15 +17,32 @@ def main():
 
     while True:
 
+        # Get the data from serial
         data = ser.getFingerData()
-        fm.handleKeypress(data)
-        vis.loop()
+
+        # TODO: handle states
+        if fm.mode is 'ready':
+            pass
+
+        elif fm.mode is 'tareRest':
+            fm.tareRest (data)
+
+        elif fm.mode is 'train':
+            fm.trainValues(data)
+
+        elif fm.mode is 'generate':
+            fm.generatePermutations()
+            
+        else:
+            pass
+
+
+        vis.loop(fm)
 
         # Connect the serial port
         # create the pygame instance
         # Create the machine learner and train some data
         # Create the finger mapping trainer and tie these all together
-        pass
 
 if __name__ == "__main__":
     main()

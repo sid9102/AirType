@@ -12,4 +12,4 @@ class AirSerial():
 
     def getFingerData(self):
         data = tuple(self.ser.readline().split('\t'))
-        return map(int, values)
+        return map(int, data)
