@@ -117,21 +117,26 @@ class AirFingerMap():
             averages = []
             stddevs = []
             ranges = []
-            
+
+            # sum each finger's changes
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     averages[index] += dps[index]
 
+            # divide each finger's sum to get its average
             for a in averages:
                 a /= len(self.rangeData)
 
+            # save (average - actual)^2 ..... for each finger
             for dps in self.rangeData:
                 for index in range(len(dps)):
                     stddevs[index] += (dps[index] - averages[index]) * (dps[index] - averages[index])
 
+            # square root the previous calculation to get standard deviation
             for s in stddevs:
                 s = math.sqrt(s/len(self.rangeData))
 
+            # multiply the standard deviation by 2 to get the range
             for index in range(len(averages)):
                 ranges[index] = stddevss[index] * 2
 
