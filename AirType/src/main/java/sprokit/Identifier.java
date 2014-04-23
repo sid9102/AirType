@@ -1,22 +1,12 @@
 package sprokit;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
-
 import libsvm.SelfOptimizingLinearLibSVM;
 import net.sf.javaml.classification.Classifier;
-import net.sf.javaml.classification.KNearestNeighbors;
-import net.sf.javaml.clustering.AQBC;
 import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.DensityBasedSpatialClustering;
-import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.clustering.KMedoids;
-import net.sf.javaml.clustering.SOM;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
@@ -28,7 +18,7 @@ import py4j.GatewayServer;
 public class Identifier {
 	private NormalizeMidrange normalizer;
 	private Classifier classifier;
-	private HashMap<double[], String> gestureCounts;
+	private HashMap<String, double[]> gestureCounts;
 	private int clusterCount;
 	private int stackSize;
 	private int none_index;
@@ -108,7 +98,7 @@ public class Identifier {
 		
 		// set up rolling window for meta-classification analysis
 		this.stackSize = stackSize;
-		gestureCounts = new HashMap<double[], String>();
+		gestureCounts = new HashMap<String, double[]>();
 		clusterCount = clusters.length + 1;
 		classificationCounts = new double[clusterCount];
 		none_index = clusterCount - 1; // last index corresponds to no classification
@@ -122,13 +112,28 @@ public class Identifier {
 	public void mapGuesture(String guesture, List<List<Double>> data, boolean debug){
 		double[] counts;
 		
-		counts = new double[clusterCount];
-		gestureCounts.put(counts,guesture);
-		for(int c = 0; c < clusterCount; c++){
-			counts[c] = 0.0;
+		if(gestureCounts.containsKey(guesture)){
+			counts = gestureCounts.get(guesture);
+			double[] tcounts = new double[clusterCount];
+			for(int c = 0; c < clusterCount; c++){
+				tcounts[c] = 0.0;
+			}
+			for(List<Double> datum : data){
+				tcounts[classify(datum)] += 1;
+			}
+			for(int c = 0; c < clusterCount; c++){
+				counts[c] = (counts[c] + tcounts[c]) / 2;
+			}
 		}
-		for(List<Double> datum : data){
-			counts[classify(datum)] += 1.0 / (double)data.size();
+		else{
+			counts = new double[clusterCount];
+			gestureCounts.put(guesture,counts);
+			for(int c = 0; c < clusterCount; c++){
+				counts[c] = 0.0;
+			}
+			for(List<Double> datum : data){
+				counts[classify(datum)] += 1.0 / (double)data.size();
+			}
 		}
 		
 		if(debug){
@@ -147,7 +152,7 @@ public class Identifier {
 		if(c instanceof String && ((String)c).equals(none_classification)){
 			return none_index;
 		}
-        return (Integer)c;
+		return (Integer) c;
 	}
 	
 	public String identify(List<Double> data){
@@ -156,17 +161,16 @@ public class Identifier {
 	}
 	
 	public String identify(){
-		double[] mincount = null;
+		String mingesture = null;
 		double mindist = Double.MAX_VALUE;
-		for(double[] ecount : gestureCounts.keySet()){
-			double edist = distance(ecount);
+		for(String egesture : gestureCounts.keySet()){
+			double edist = distance(gestureCounts.get(egesture));
 			if(edist <= mindist){
 				mindist = edist;
-				mincount = ecount;
+				mingesture = egesture;
 			}
-			System.out.println("      " + gestureCounts.get(ecount) + " : " + edist);
 		}
-		return gestureCounts.get(mincount);
+		return mingesture;
 	}
 	
 	private void record(int c) {
