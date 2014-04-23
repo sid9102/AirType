@@ -1,6 +1,7 @@
 class AirFingerMap():
     def __init__(self, training_text):
-        self.press_done = True
+        self.press_done = [True]*8 # Determine if a finger has pressed a key and
+                                   # returned to its normal position
         self.train_idx = 0
         self.training_text = training_text
         self.mapping = {}
@@ -10,7 +11,7 @@ class AirFingerMap():
         self.tarePressValues = None # Used for averaging the ceiling threshold
         self.restOffsets = None
         self.pressOffsets = None
-        self.pressThresh = .4
+        self.pressThresh = .7
 
         # Custom thresholds per finger for now until I can add training for
         # individual finger ranges
@@ -33,21 +34,21 @@ class AirFingerMap():
         #TODO TEMP
         ratios = [ i/j for i,j in zip(data, self.ranges)]
 
-        max_value = max(ratios)
-        fingerPressed = None
-        if max_value > self.pressThresh:
-            ind = ratios.index(max_value)
-            fingerPressed = ind
+        sorted_ratios = [i[0] for i in sorted(enumerate(ratios), key=lambda x:x[1], reverse=True)]
+        
+        for index in sorted_ratios:
+            fingerPressed = None
+            if ratios[index] > self.pressThresh:
+                fingerPressed = index
 
-        if fingerPressed is not None:
-            if self.press_done:
-                self.press_done = False
-                return fingerPressed
-            elif not self.press_done:
-                return -1
-        else:
-            self.press_done = True
-        return -1
+            if fingerPressed is not None:
+                if self.press_done[fingerPressed]:
+                    self.press_done[fingerPressed] = False
+                    return fingerPressed
+            else:
+                self.press_done[index] = True
+
+        return -1;
 
     def trainValues(self, values):
         """ Given input of finger thresholds, determine if the user made a
