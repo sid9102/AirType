@@ -48,10 +48,12 @@ class AirFingerMap():
 
         sorted_ratios = [i[0] for i in sorted(enumerate(ratios), key=lambda x:x[1], reverse=True)]
 
-        # scroll all activated thresholds back to 1
+        # scroll all activated thresholds back torward 1
         for index in range(len(self.scrollingThresh)):
             if self.scrollingThresh[index] > 1:
                 self.scrollingThresh[index] -= self.scrollingThreshMag / self.scrollingThreshReset
+            else:
+                self.scrollingThresh[index] = 1 # reset if it was 1 or below
 
         for index in sorted_ratios:
             fingerPressed = None
@@ -65,9 +67,9 @@ class AirFingerMap():
                     # increment the scrolling thresh for affected fingeers
                     # (ie activated finger -1 and +1)
                     if fingerPressed >= 1:
-                        self.scrollingThresh[fingerPressed-1] += self.scrollingThreshMag
+                        self.scrollingThresh[fingerPressed-1] = 1 + self.scrollingThreshMag
                     if fingerPressed <= 6:
-                        self.scrollingThresh[fingerPressed+1] += self.scrollingThreadMag
+                        self.scrollingThresh[fingerPressed+1] = 1 + self.scrollingThreadMag
                     
                     return fingerPressed
             else:

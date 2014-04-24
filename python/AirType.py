@@ -4,7 +4,6 @@ class AirType():
         self.candidates = []
         self.pygame = pygame
 
-
         # Stuff used by pygame
         self.word = ''
         self.alts = []
